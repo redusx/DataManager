@@ -270,7 +270,7 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
             gravity = Gravity.CENTER
         }
 
-        // Custom container FrameLayout that reliably intercepts touches outside the card
+        // Custom container FrameLayout that intercepts touches outside the card
         val container = object : FrameLayout(this) {
             override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
                 if (ev.action == MotionEvent.ACTION_OUTSIDE) {
@@ -280,6 +280,11 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
                 return super.dispatchTouchEvent(ev)
             }
         }
+
+        // Set ViewTree owners on container (the root view added to WindowManager)
+        container.setViewTreeLifecycleOwner(this)
+        container.setViewTreeViewModelStoreOwner(this)
+        container.setViewTreeSavedStateRegistryOwner(this)
 
         val composeView = ComposeView(this).apply {
             setViewTreeLifecycleOwner(this@OverlayService)

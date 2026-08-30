@@ -57,8 +57,8 @@ val AccountGradientEnd = Color(0xFF8E44AD)
 val CustomGradientStart = Color(0xFFE67E22)
 val CustomGradientEnd = Color(0xFFD35400)
 
-// ── Shared Colors ──
 val ShieldGold = Color(0xFFF5B342)
 val ShieldBlue = Color(0xFF3D5AF1)
+val ShieldBlueDark = Color(0xFF1E3BB8)
 val SuccessGreen = Color(0xFF2ECC71)
 val WarningOrange = Color(0xFFE67E22)

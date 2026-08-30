@@ -80,6 +80,8 @@
     <string name="overlay_quick_access_desc">Show a floating button over other apps to quickly copy your data</string>
     <string name="overlay_permission_required">Overlay permission is required</string>
     <string name="overlay_permission_desc">Please grant permission to display over other apps in system settings.</string>
+    <string name="start_floating_button">Floating Quick Access</string>
+    <string name="start_floating_button_desc">Tap to minimize app and show floating button over other apps</string>
     <string name="open_app">Open App</string>
     <string name="minimize">Minimize</string>
     <string name="all">All</string>
