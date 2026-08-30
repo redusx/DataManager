@@ -114,19 +114,19 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun onChangePinOldPinChanged(pin: String) {
-        if (pin.length <= 6) {
+        if (pin.all { it.isDigit() } && pin.length <= 6) {
             _uiState.value = _uiState.value.copy(changePinOldPin = pin, changePinError = null)
         }
     }
 
     fun onChangePinNewPinChanged(pin: String) {
-        if (pin.length <= 6) {
+        if (pin.all { it.isDigit() } && pin.length <= 6) {
             _uiState.value = _uiState.value.copy(changePinNewPin = pin, changePinError = null)
         }
     }
 
     fun onChangePinConfirmPinChanged(pin: String) {
-        if (pin.length <= 6) {
+        if (pin.all { it.isDigit() } && pin.length <= 6) {
             _uiState.value = _uiState.value.copy(changePinConfirmPin = pin, changePinError = null)
         }
     }
@@ -137,8 +137,12 @@ class SettingsViewModel @Inject constructor(
             _uiState.value = state.copy(changePinError = "pin_mismatch")
             return
         }
-        if (state.changePinNewPin.length < 4) {
+        if (state.changePinNewPin.length < 4 || state.changePinNewPin.length > 6 || !state.changePinNewPin.all { it.isDigit() }) {
             _uiState.value = state.copy(changePinError = "pin_too_short")
+            return
+        }
+        if (state.changePinOldPin.length < 4 || !state.changePinOldPin.all { it.isDigit() }) {
+            _uiState.value = state.copy(changePinError = "wrong_old_pin")
             return
         }
 

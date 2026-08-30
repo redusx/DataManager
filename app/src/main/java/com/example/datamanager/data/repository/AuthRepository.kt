@@ -71,6 +71,8 @@ class AuthRepository @Inject constructor(
     }
 
     fun setupPin(pin: String): Boolean {
+        // Enforce numeric-only PIN (4 to 6 digits)
+        if (pin.length !in 4..6 || !pin.all { it.isDigit() }) return false
         return try {
             val pinHash = cryptoManager.hashPin(pin)
             val encrypted = cryptoManager.encryptForStorage(pinHash)
@@ -83,6 +85,8 @@ class AuthRepository @Inject constructor(
     }
 
     fun verifyPin(pin: String): Boolean {
+        // Enforce numeric-only PIN (4 to 6 digits)
+        if (pin.length !in 4..6 || !pin.all { it.isDigit() }) return false
         if (isLockedOut()) return false
 
         return try {
@@ -102,6 +106,7 @@ class AuthRepository @Inject constructor(
     }
 
     fun changePin(oldPin: String, newPin: String): Boolean {
+        if (newPin.length !in 4..6 || !newPin.all { it.isDigit() }) return false
         if (!verifyPin(oldPin)) return false
         return setupPin(newPin)
     }
