@@ -1,0 +1,95 @@
+<resources>
+    <string name="app_name">DataManager</string>
+
+    <!-- Auth -->
+    <string name="setup_pin">PIN kodunuzu oluşturun</string>
+    <string name="confirm_pin">PIN kodunuzu onaylayın</string>
+    <string name="enter_pin">PIN kodunuzu girin</string>
+    <string name="pin_mismatch">PIN kodları eşleşmiyor. Tekrar deneyin.</string>
+    <string name="wrong_pin">Yanlış PIN. Tekrar deneyin.</string>
+    <string name="setup_failed">Kurulum başarısız. Tekrar deneyin.</string>
+    <string name="locked_out">Çok fazla deneme. Lütfen bekleyin.</string>
+    <string name="error_generic">Bir hata oluştu.</string>
+
+    <!-- Home -->
+    <string name="welcome_title">Kasanız</string>
+    <string name="welcome_subtitle">Bilgileriniz her zaman güvende.</string>
+    <string name="categories">Kategoriler</string>
+    <string name="favorites">Favoriler</string>
+    <string name="no_favorites">Henüz favori yok.</string>
+    <string name="home">Ana Sayfa</string>
+    <string name="search_placeholder">Verilerinizde arayın…</string>
+
+    <!-- Categories -->
+    <string name="category_personal">Kişisel</string>
+    <string name="category_financial">Finansal</string>
+    <string name="category_accounts">Hesaplar</string>
+    <string name="category_custom">Özel</string>
+
+    <!-- Entry -->
+    <string name="add_entry">Yeni Kayıt</string>
+    <string name="edit_entry">Kaydı Düzenle</string>
+    <string name="entry_title">Başlık</string>
+    <string name="title_required">Başlık gereklidir.</string>
+    <string name="category">Kategori</string>
+    <string name="templates">Şablonlar</string>
+    <string name="use_template">Şablon Kullan</string>
+    <string name="fields">Alanlar</string>
+    <string name="field_label">Etiket</string>
+    <string name="field_value">Değer</string>
+    <string name="add_field">Alan Ekle</string>
+    <string name="sensitive">Hassas</string>
+    <string name="save">Kaydet</string>
+    <string name="saving">Kaydediliyor…</string>
+    <string name="cancel">İptal</string>
+    <string name="delete">Sil</string>
+    <string name="delete_entry">Kaydı Sil</string>
+    <string name="delete_entry_confirm">Bu kaydı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.</string>
+    <string name="copied">Panoya kopyalandı!</string>
+    <string name="no_entries">Henüz kayıt yok.</string>
+
+    <!-- Templates -->
+    <string name="template_personal">Kişisel Bilgiler</string>
+    <string name="template_credit_card">Kredi Kartı</string>
+    <string name="template_bank_account">Banka Hesabı</string>
+    <string name="template_login">Giriş Hesabı</string>
+
+    <!-- Settings -->
+    <string name="settings">Ayarlar</string>
+    <string name="security">Güvenlik</string>
+    <string name="change_pin">PIN Değiştir</string>
+    <string name="old_pin">Mevcut PIN</string>
+    <string name="new_pin">Yeni PIN</string>
+    <string name="confirm_pin_label">PIN Onayla</string>
+    <string name="pin_too_short">PIN en az 4 haneli olmalıdır.</string>
+    <string name="wrong_old_pin">Mevcut PIN yanlış.</string>
+    <string name="biometric_auth">Parmak İzi ile Giriş</string>
+    <string name="biometric_auth_desc">Kilidi açmak için parmak izini kullanın</string>
+    <string name="data">Veri</string>
+    <string name="delete_all_data">Tüm Verileri Sil</string>
+    <string name="delete_all_data_confirm">Bu işlem tüm kayıtlı verilerinizi, PIN kodunuzu ve şifreleme anahtarlarınızı kalıcı olarak silecektir. Bu işlem geri alınamaz.</string>
+    <string name="about">Hakkında</string>
+    <string name="about_desc">Çevrimdışı kişisel bilgi ve şifre yöneticisi. Verileriniz cihazınızdan asla çıkmaz.</string>
+
+    <!-- Overlay -->
+    <string name="overlay_channel_name">Hızlı Erişim</string>
+    <string name="overlay_channel_desc">Verilerinize hızlı erişim için yüzen buton.</string>
+    <string name="overlay_notification_title">DataManager Aktif</string>
+    <string name="overlay_notification_text">Açmak için dokunun. Butonu sürükleyerek taşıyın.</string>
+    <string name="overlay_quick_access">Yüzen Buton (Hızlı Erişim)</string>
+    <string name="overlay_quick_access_desc">Diğer uygulamaların üzerinde verilerinizi hızlıca kopyalamak için yüzen buton gösterin</string>
+    <string name="overlay_permission_required">Görüntüleme İzni Gerekli</string>
+    <string name="overlay_permission_desc">Yüzen butonu kullanabilmek için lütfen diğer uygulamaların üzerinde görüntüleme iznini açın.</string>
+    <string name="open_app">Uygulamayı Aç</string>
+    <string name="minimize">Küçült</string>
+    <string name="all">Tümü</string>
+    <string name="copied_item">%1$s panoya kopyalandı</string>
+
+    <!-- Biometric -->
+    <string name="biometric_title">Parmak İzi Doğrulama</string>
+    <string name="biometric_subtitle">Kilidi açmak için sensöre dokunun</string>
+    <string name="biometric_cancel">PIN Kullan</string>
+    <string name="biometric_not_available">Bu cihazda parmak izi doğrulama kullanılamıyor.</string>
+    <string name="biometric_none_enrolled">Kayıtlı parmak izi bulunamadı. Lütfen cihaz ayarlarından parmak izi ekleyin.</string>
+    <string name="biometric_no_hardware">Bu cihazda parmak izi donanımı bulunmuyor.</string>
+</resources>
