@@ -96,6 +96,7 @@ fun OverlayPanel(
     entries: List<DataEntry>,
     onMinimize: () -> Unit,
     onOpenMainApp: () -> Unit,
+    onCopiedAndMinimize: () -> Unit = onMinimize,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -360,10 +361,8 @@ fun OverlayPanel(
 
                                 lastCopiedLabel = "${item.entryId}_${item.label}"
                                 scope.launch {
-                                    delay(1500)
-                                    if (lastCopiedLabel == "${item.entryId}_${item.label}") {
-                                        lastCopiedLabel = null
-                                    }
+                                    delay(200)
+                                    onCopiedAndMinimize()
                                 }
                             }
                         )

@@ -14,6 +14,7 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import android.widget.FrameLayout
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
@@ -82,7 +83,7 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
 
     private var windowManager: WindowManager? = null
     private var bubbleView: View? = null
-    private var panelView: ComposeView? = null
+    private var panelContainer: FrameLayout? = null
     private var isExpanded = false
 
     private var bubbleParams: WindowManager.LayoutParams? = null
@@ -269,7 +270,18 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
             gravity = Gravity.CENTER
         }
 
-        panelView = ComposeView(this).apply {
+        // Custom container FrameLayout that reliably intercepts touches outside the card
+        val container = object : FrameLayout(this) {
+            override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+                if (ev.action == MotionEvent.ACTION_OUTSIDE) {
+                    collapseToBubble()
+                    return true
+                }
+                return super.dispatchTouchEvent(ev)
+            }
+        }
+
+        val composeView = ComposeView(this).apply {
             setViewTreeLifecycleOwner(this@OverlayService)
             setViewTreeViewModelStoreOwner(this@OverlayService)
             setViewTreeSavedStateRegistryOwner(this@OverlayService)
@@ -280,6 +292,7 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
                     OverlayPanel(
                         entries = entries,
                         onMinimize = { collapseToBubble() },
+                        onCopiedAndMinimize = { collapseToBubble() },
                         onOpenMainApp = {
                             collapseToBubble()
                             val launchIntent = Intent(this@OverlayService, MainActivity::class.java).apply {
@@ -292,8 +305,11 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
             }
         }
 
+        container.addView(composeView)
+        panelContainer = container
+
         try {
-            windowManager?.addView(panelView, params)
+            windowManager?.addView(panelContainer, params)
         } catch (e: Exception) {
             // Fallback
             showBubble()
@@ -308,13 +324,13 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
     }
 
     private fun removePanel() {
-        panelView?.let {
+        panelContainer?.let {
             try {
                 windowManager?.removeView(it)
             } catch (e: Exception) {
                 // Ignore
             }
         }
-        panelView = null
+        panelContainer = null
     }
 }
