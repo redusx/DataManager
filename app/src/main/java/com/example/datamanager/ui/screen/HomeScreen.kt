@@ -110,12 +110,7 @@ fun HomeScreen(
         }
 
         if (hasPermission) {
-            // Save preference & start service
-            context.getSharedPreferences("datamanager_ui_settings", Context.MODE_PRIVATE)
-                .edit()
-                .putBoolean("overlay_enabled", true)
-                .apply()
-
+            // Start overlay service (if settings has persistent mode off, it will close on task remove)
             OverlayService.start(context)
 
             // Send current activity to the background so the floating bubble appears over the user's previous app

@@ -76,12 +76,12 @@
     <string name="overlay_channel_desc">Verilerinize hızlı erişim için yüzen buton.</string>
     <string name="overlay_notification_title">DataManager Aktif</string>
     <string name="overlay_notification_text">Açmak için dokunun. Butonu sürükleyerek taşıyın.</string>
-    <string name="overlay_quick_access">Yüzen Buton (Hızlı Erişim)</string>
-    <string name="overlay_quick_access_desc">Diğer uygulamaların üzerinde verilerinizi hızlıca kopyalamak için yüzen buton gösterin</string>
+    <string name="overlay_quick_access">Yüzen Buton (Sürekli Açık)</string>
+    <string name="overlay_quick_access_desc">Uygulama arka plandan tamamen kapatılsa bile yüzen butonu ekranda açık tut</string>
     <string name="overlay_permission_required">Görüntüleme İzni Gerekli</string>
     <string name="overlay_permission_desc">Yüzen butonu kullanabilmek için lütfen diğer uygulamaların üzerinde görüntüleme iznini açın.</string>
     <string name="start_floating_button">Yüzen Hızlı Erişimi Başlat</string>
-    <string name="start_floating_button_desc">Uygulamayı arka plana atıp ekranda yüzen hızlı kopyalama butonunu açar</string>
+    <string name="start_floating_button_desc">Uygulamayı arka plana atıp yüzen butonu açar (Uygulama kapatılana kadar aktif kalır)</string>
     <string name="open_app">Uygulamayı Aç</string>
     <string name="minimize">Küçült</string>
     <string name="all">Tümü</string>

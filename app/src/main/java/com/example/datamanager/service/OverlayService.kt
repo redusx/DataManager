@@ -51,6 +51,8 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
     companion object {
         private const val CHANNEL_ID = "datamanager_overlay_channel"
         private const val NOTIFICATION_ID = 1001
+        private const val PREFS_SETTINGS = "datamanager_ui_settings"
+        private const val KEY_OVERLAY_ENABLED = "overlay_enabled"
 
         fun start(context: Context) {
             val intent = Intent(context, OverlayService::class.java)
@@ -113,7 +115,24 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
-        return START_STICKY
+
+        val prefs = getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE)
+        val isPersistentEnabled = prefs.getBoolean(KEY_OVERLAY_ENABLED, false)
+
+        return if (isPersistentEnabled) START_STICKY else START_NOT_STICKY
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        val prefs = getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE)
+        val isPersistentEnabled = prefs.getBoolean(KEY_OVERLAY_ENABLED, false)
+
+        // If user has NOT explicitly enabled the persistent overlay setting in Settings,
+        // stop the overlay service when the app is closed from recent tasks.
+        if (!isPersistentEnabled) {
+            stopSelf()
+        }
+
+        super.onTaskRemoved(rootIntent)
     }
 
     override fun onDestroy() {
