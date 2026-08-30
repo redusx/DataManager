@@ -160,11 +160,16 @@ class SettingsViewModel @Inject constructor(
 
     suspend fun deleteAllData() {
         setOverlayEnabled(false)
-        dataRepository.deleteAllEntries()
+        try {
+            dataRepository.deleteAllEntries()
+        } catch (e: Exception) {
+            // Ignore
+        }
+        AppDatabase.destroyInstance()
+        context.deleteDatabase(AppDatabase.DATABASE_NAME)
         authRepository.deleteAllData()
         cryptoManager.clearDbPassphrase(context)
         keystoreManager.deleteAllKeys()
-        AppDatabase.destroyInstance()
         _uiState.value = _uiState.value.copy(
             showDeleteDataDialog = false,
             deleteDataSuccess = true

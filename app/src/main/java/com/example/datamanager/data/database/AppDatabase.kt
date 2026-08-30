@@ -15,7 +15,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun dataEntryDao(): DataEntryDao
 
     companion object {
-        private const val DATABASE_NAME = "datamanager_encrypted.db"
+        const val DATABASE_NAME = "datamanager_encrypted.db"
 
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -28,7 +28,8 @@ abstract class AppDatabase : RoomDatabase() {
 
         private fun buildDatabase(context: Context, cryptoManager: CryptoManager): AppDatabase {
             val passphrase = cryptoManager.getOrCreateDbPassphrase(context)
-            val factory = SupportFactory(passphrase)
+            // Use clearPassphrase = false so SQLCipher does not zero out the passphrase array in memory
+            val factory = SupportFactory(passphrase, null, false)
 
             val db = Room.databaseBuilder(
                 context.applicationContext,
@@ -44,7 +45,7 @@ abstract class AppDatabase : RoomDatabase() {
                 db.openHelper.writableDatabase
                 db
             } catch (e: Exception) {
-                // If database was encrypted with an old/incompatible key from previous run, recover gracefully
+                // If database was encrypted with an old/incompatible key from previous run or after wipe, recover gracefully
                 try {
                     db.close()
                 } catch (closeEx: Exception) {
@@ -52,12 +53,15 @@ abstract class AppDatabase : RoomDatabase() {
                 }
                 context.deleteDatabase(DATABASE_NAME)
 
+                val freshPassphrase = cryptoManager.getOrCreateDbPassphrase(context)
+                val freshFactory = SupportFactory(freshPassphrase, null, false)
+
                 val freshDb = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     DATABASE_NAME
                 )
-                    .openHelperFactory(factory)
+                    .openHelperFactory(freshFactory)
                     .fallbackToDestructiveMigration()
                     .build()
 
@@ -71,7 +75,11 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         fun destroyInstance() {
-            INSTANCE?.close()
+            try {
+                INSTANCE?.close()
+            } catch (e: Exception) {
+                // Ignore
+            }
             INSTANCE = null
         }
     }
