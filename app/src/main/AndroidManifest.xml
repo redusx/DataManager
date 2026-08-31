@@ -39,6 +39,16 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Overlay quick access button for encrypted password manager" />
         </service>
+
+        <receiver
+            android:name=".receiver.DebugDataSeederReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.example.datamanager.SEED_DATABASE" />
+                <action android:name="com.example.datamanager.SEED_DATA" />
+                <action android:name="com.example.datamanager.CLEAR_DATABASE" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
