@@ -362,14 +362,18 @@ fun OverlayPanel(
                 } else {
                     // Level 2: Selected Entry's Detail & Copyable Fields View
                     Column(modifier = Modifier.fillMaxWidth()) {
+                        // Parse fields of selected entry
+                        val fields: List<FieldItem> = remember(currentEntry) {
+                            try {
+                                gson.fromJson<List<FieldItem>>(currentEntry.fieldsJson, fieldListType) ?: emptyList()
+                            } catch (e: Exception) {
+                                emptyList()
+                            }
+                        }
+
                         // Sub-header with Back button (Replaces Category Chips)
                         val category = Category.fromId(currentEntry.category)
-                        val (categoryIcon, categoryTint) = when (category) {
-                            Category.ACCOUNT -> Icons.Rounded.Lock to CategoryLoginsTint
-                            Category.FINANCIAL -> Icons.Rounded.CreditCard to CategoryCardsTint
-                            Category.PERSONAL -> Icons.Rounded.AccountCircle to CategoryIdentityTint
-                            Category.CUSTOM -> Icons.Rounded.Description to CategoryNotesTint
-                        }
+                        val (categoryIcon, categoryTint) = com.example.datamanager.ui.component.getEntryVisuals(category, fields)
 
                         Row(
                             modifier = Modifier
@@ -421,15 +425,6 @@ fun OverlayPanel(
                         }
 
                         Spacer(modifier = Modifier.height(Spacing.xs))
-
-                        // Parse fields of selected entry
-                        val fields: List<FieldItem> = remember(currentEntry) {
-                            try {
-                                gson.fromJson<List<FieldItem>>(currentEntry.fieldsJson, fieldListType) ?: emptyList()
-                            } catch (e: Exception) {
-                                emptyList()
-                            }
-                        }
 
                         if (fields.isEmpty()) {
                             Box(
@@ -495,13 +490,15 @@ private fun OverlayEntryCard(
     fieldListType: java.lang.reflect.Type,
     onClick: () -> Unit
 ) {
-    val category = Category.fromId(entry.category)
-    val (categoryIcon, categoryTint) = when (category) {
-        Category.ACCOUNT -> Icons.Rounded.Lock to CategoryLoginsTint
-        Category.FINANCIAL -> Icons.Rounded.CreditCard to CategoryCardsTint
-        Category.PERSONAL -> Icons.Rounded.AccountCircle to CategoryIdentityTint
-        Category.CUSTOM -> Icons.Rounded.Description to CategoryNotesTint
+    val fields = remember(entry.fieldsJson) {
+        try {
+            gson.fromJson<List<FieldItem>>(entry.fieldsJson, fieldListType) ?: emptyList()
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
+    val category = Category.fromId(entry.category)
+    val (categoryIcon, categoryTint) = com.example.datamanager.ui.component.getEntryVisuals(category, fields)
 
     val summary = remember(entry) {
         getEntrySummary(entry, gson, fieldListType)

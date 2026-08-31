@@ -63,7 +63,6 @@ fun TemplateSelectorBottomSheet(
     val options = listOf(
         TemplateOption(TemplateType.LOGIN, Icons.Rounded.Lock, CategoryLoginsTint),
         TemplateOption(TemplateType.CARD, Icons.Rounded.CreditCard, CategoryCardsTint),
-        TemplateOption(TemplateType.BANK_ACCOUNT, Icons.Rounded.AccountBalance, CategoryCardsTint),
         TemplateOption(TemplateType.IDENTITY, Icons.Rounded.Badge, CategoryIdentityTint),
         TemplateOption(TemplateType.ADDRESS, Icons.Rounded.LocationOn, CategoryIdentityTint),
         TemplateOption(TemplateType.SECURE_NOTE, Icons.Rounded.Description, CategoryNotesTint)

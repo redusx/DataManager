@@ -46,14 +46,14 @@ enum class TemplateType(
     ),
     CARD(
         id = "card",
-        title = "Banka & Kredi Kartı",
-        description = "Kredi kartları ve banka kartı bilgileri",
+        title = "Banka & Kart Bilgileri",
+        description = "Kredi kartı, banka kartı, IBAN ve hesap bilgileri",
         category = Category.FINANCIAL
     ),
     BANK_ACCOUNT(
         id = "bank_account",
-        title = "Banka Hesabı & IBAN",
-        description = "Hesap numaraları ve IBAN kayıtları",
+        title = "Banka & Kart Bilgileri",
+        description = "Kredi kartı, banka kartı, IBAN ve hesap bilgileri",
         category = Category.FINANCIAL
     ),
     IDENTITY(

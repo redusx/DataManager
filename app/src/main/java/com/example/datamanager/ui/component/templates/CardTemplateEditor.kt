@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AccountBalance
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.CreditCard
 import androidx.compose.material.icons.rounded.Remove
@@ -57,6 +58,12 @@ import com.example.datamanager.ui.theme.ShapeTokens
 import com.example.datamanager.ui.theme.Spacing
 import com.example.datamanager.util.CardNumberVisualTransformation
 import com.example.datamanager.util.ExpiryDateVisualTransformation
+import com.example.datamanager.util.IbanVisualTransformation
+
+private enum class FinancialSubTab {
+    CARD,
+    BANK_ACCOUNT
+}
 
 @Composable
 fun CardTemplateEditor(
@@ -67,9 +74,6 @@ fun CardTemplateEditor(
     titleError: Boolean,
     modifier: Modifier = Modifier
 ) {
-    var showAdditional by remember { mutableStateOf(false) }
-    var isCvvRevealed by remember { mutableStateOf(false) }
-
     fun getFieldValue(key: String): String = fields.firstOrNull { it.key == key }?.value ?: ""
 
     fun updateField(key: String, value: String, type: FieldType = FieldType.TEXT, isSensitive: Boolean = false) {
@@ -83,11 +87,25 @@ fun CardTemplateEditor(
         onFieldsChange(list)
     }
 
+    val initialTab = if (getFieldValue("iban").isNotEmpty() && getFieldValue("card_number").isEmpty()) {
+        FinancialSubTab.BANK_ACCOUNT
+    } else {
+        FinancialSubTab.CARD
+    }
+
+    var activeTab by remember { mutableStateOf(initialTab) }
+    var showAdditional by remember { mutableStateOf(false) }
+    var isCvvRevealed by remember { mutableStateOf(false) }
+
     val cardNumber = getFieldValue("card_number")
     val expiryDate = getFieldValue("expiry_date")
     val cvv = getFieldValue("cvv")
     val cardHolder = getFieldValue("card_holder")
     val bankName = getFieldValue("bank_name")
+    val iban = getFieldValue("iban")
+    val accountHolder = getFieldValue("account_holder")
+    val accountNumber = getFieldValue("account_number")
+    val branchCode = getFieldValue("branch_code")
     val notes = getFieldValue("notes")
 
     val cardBrand = remember(cardNumber) {
@@ -104,166 +122,128 @@ fun CardTemplateEditor(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(Spacing.m)
     ) {
-        // Physical Card Preview Widget
-        PhysicalCardPreview(
-            title = title.ifEmpty { "Kredi / Banka Kartı" },
-            cardNumber = cardNumber,
-            expiryDate = expiryDate,
-            cvv = cvv,
-            cardHolder = cardHolder,
-            cardBrand = cardBrand
-        )
-
-        // Essential Fields
-        Text(
-            text = "KART BİLGİLERİ",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold
-        )
-
-        OutlinedTextField(
-            value = title,
-            onValueChange = onTitleChange,
-            label = { Text("Kart Başlığı / Takma Ad") },
-            placeholder = { Text("örn. Garanti Bonus, Maaş Kartı") },
-            singleLine = true,
-            isError = titleError,
-            modifier = Modifier.fillMaxWidth(),
-            shape = ShapeTokens.InputRadius,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-            )
-        )
-
-        OutlinedTextField(
-            value = cardNumber,
-            onValueChange = { if (it.length <= 19) updateField("card_number", it.filter { c -> c.isDigit() }, FieldType.CARD_NUMBER, isSensitive = true) },
-            label = { Text("Kart Numarası") },
-            placeholder = { Text("4242 4242 4242 4242") },
-            singleLine = true,
-            visualTransformation = CardNumberVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth(),
-            shape = ShapeTokens.InputRadius,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-            )
-        )
-
+        // Financial Sub-Tab Selector (Card vs IBAN)
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(Spacing.s)
-        ) {
-            OutlinedTextField(
-                value = expiryDate,
-                onValueChange = { if (it.length <= 4) updateField("expiry_date", it.filter { c -> c.isDigit() }, FieldType.DATE) },
-                label = { Text("Son Kullanma (AA/YY)") },
-                placeholder = { Text("12 / 28") },
-                singleLine = true,
-                visualTransformation = ExpiryDateVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.weight(1f),
-                shape = ShapeTokens.InputRadius,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-                )
-            )
-
-            OutlinedTextField(
-                value = cvv,
-                onValueChange = { if (it.length <= 4) updateField("cvv", it.filter { c -> c.isDigit() }, FieldType.NUMBER, isSensitive = true) },
-                label = { Text("CVV / CVC") },
-                placeholder = { Text("•••") },
-                singleLine = true,
-                visualTransformation = if (isCvvRevealed) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                trailingIcon = {
-                    IconButton(onClick = { isCvvRevealed = !isCvvRevealed }) {
-                        Icon(
-                            imageVector = if (isCvvRevealed) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
-                            contentDescription = if (isCvvRevealed) "Gizle" else "Göster",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                },
-                modifier = Modifier.weight(1f),
-                shape = ShapeTokens.InputRadius,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-                )
-            )
-        }
-
-        OutlinedTextField(
-            value = cardHolder,
-            onValueChange = { updateField("card_holder", it.uppercase(), FieldType.TEXT) },
-            label = { Text("Kart Üzerindeki İsim") },
-            placeholder = { Text("AHMET YILMAZ") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
-            modifier = Modifier.fillMaxWidth(),
-            shape = ShapeTokens.InputRadius,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-            )
-        )
-
-        // Progressive Disclosure: Additional Fields
-        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(ShapeTokens.CardRadius)
-                .background(MaterialTheme.colorScheme.surfaceContainer)
-                .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                    shape = ShapeTokens.CardRadius
-                )
-                .clickable { showAdditional = !showAdditional }
-                .padding(Spacing.m)
+                .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                .padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+            val isCardSelected = activeTab == FinancialSubTab.CARD
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(ShapeTokens.ButtonRadius)
+                    .background(if (isCardSelected) MaterialTheme.colorScheme.surfaceContainerHighest else Color.Transparent)
+                    .clickable { activeTab = FinancialSubTab.CARD }
+                    .padding(vertical = 10.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = if (showAdditional) "Ek Bilgileri Gizle" else "＋ Ek Bilgiler Ekle (Banka, Not)",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Icon(
-                    imageVector = if (showAdditional) Icons.Rounded.Remove else Icons.Rounded.Add,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(18.dp)
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Rounded.CreditCard,
+                        contentDescription = null,
+                        tint = if (isCardSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(Spacing.xs))
+                    Text(
+                        text = "Kredi / Banka Kartı",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = if (isCardSelected) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isCardSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            val isIbanSelected = activeTab == FinancialSubTab.BANK_ACCOUNT
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(ShapeTokens.ButtonRadius)
+                    .background(if (isIbanSelected) MaterialTheme.colorScheme.surfaceContainerHighest else Color.Transparent)
+                    .clickable { activeTab = FinancialSubTab.BANK_ACCOUNT }
+                    .padding(vertical = 10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Rounded.AccountBalance,
+                        contentDescription = null,
+                        tint = if (isIbanSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(Spacing.xs))
+                    Text(
+                        text = "Banka Hesabı / IBAN",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = if (isIbanSelected) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isIbanSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
 
-        AnimatedVisibility(
-            visible = showAdditional,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(Spacing.s),
-                modifier = Modifier.fillMaxWidth()
+        if (activeTab == FinancialSubTab.CARD) {
+            // Physical Card Preview Widget
+            PhysicalCardPreview(
+                title = title.ifEmpty { "Kredi / Banka Kartı" },
+                cardNumber = cardNumber,
+                expiryDate = expiryDate,
+                cvv = cvv,
+                cardHolder = cardHolder,
+                cardBrand = cardBrand
+            )
+
+            // Title
+            OutlinedTextField(
+                value = title,
+                onValueChange = onTitleChange,
+                label = { Text("Kart Başlığı / Takma Ad") },
+                placeholder = { Text("örn. Garanti Bonus, Maaş Kartı") },
+                singleLine = true,
+                isError = titleError,
+                modifier = Modifier.fillMaxWidth(),
+                shape = ShapeTokens.InputRadius,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                )
+            )
+
+            // Card Number
+            OutlinedTextField(
+                value = cardNumber,
+                onValueChange = { if (it.length <= 19) updateField("card_number", it.filter { c -> c.isDigit() }, FieldType.CARD_NUMBER, isSensitive = true) },
+                label = { Text("Kart Numarası") },
+                placeholder = { Text("4242 4242 4242 4242") },
+                singleLine = true,
+                visualTransformation = CardNumberVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth(),
+                shape = ShapeTokens.InputRadius,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                )
+            )
+
+            // Expiry & CVV Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.s)
             ) {
                 OutlinedTextField(
-                    value = bankName,
-                    onValueChange = { updateField("bank_name", it, FieldType.TEXT) },
-                    label = { Text("Banka Adı") },
-                    placeholder = { Text("örn. Garanti BBVA, İş Bankası") },
+                    value = expiryDate,
+                    onValueChange = { if (it.length <= 4) updateField("expiry_date", it.filter { c -> c.isDigit() }, FieldType.DATE) },
+                    label = { Text("Son Kullanma (AA/YY)") },
+                    placeholder = { Text("12 / 28") },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = ExpiryDateVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f),
                     shape = ShapeTokens.InputRadius,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -272,18 +252,295 @@ fun CardTemplateEditor(
                 )
 
                 OutlinedTextField(
-                    value = notes,
-                    onValueChange = { updateField("notes", it, FieldType.MULTILINE) },
-                    label = { Text("Kart Notu / Güvenlik İpuçları") },
-                    placeholder = { Text("örn. Yurt dışı alışverişe açık, sanal kart") },
-                    minLines = 2,
-                    modifier = Modifier.fillMaxWidth(),
+                    value = cvv,
+                    onValueChange = { if (it.length <= 4) updateField("cvv", it.filter { c -> c.isDigit() }, FieldType.NUMBER, isSensitive = true) },
+                    label = { Text("CVV / CVC") },
+                    placeholder = { Text("•••") },
+                    singleLine = true,
+                    visualTransformation = if (isCvvRevealed) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    trailingIcon = {
+                        IconButton(onClick = { isCvvRevealed = !isCvvRevealed }) {
+                            Icon(
+                                imageVector = if (isCvvRevealed) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+                                contentDescription = if (isCvvRevealed) "Gizle" else "Göster",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
                     shape = ShapeTokens.InputRadius,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
                     )
                 )
+            }
+
+            // Cardholder Name
+            OutlinedTextField(
+                value = cardHolder,
+                onValueChange = { updateField("card_holder", it.uppercase(), FieldType.TEXT) },
+                label = { Text("Kart Üzerindeki İsim") },
+                placeholder = { Text("AHMET YILMAZ") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
+                modifier = Modifier.fillMaxWidth(),
+                shape = ShapeTokens.InputRadius,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                )
+            )
+
+            // Progressive Disclosure: Additional Fields
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(ShapeTokens.CardRadius)
+                    .background(MaterialTheme.colorScheme.surfaceContainer)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                        shape = ShapeTokens.CardRadius
+                    )
+                    .clickable { showAdditional = !showAdditional }
+                    .padding(Spacing.m)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = if (showAdditional) "Ek Bilgileri Gizle" else "＋ Ek Bilgiler Ekle (Banka, IBAN, Not)",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Icon(
+                        imageVector = if (showAdditional) Icons.Rounded.Remove else Icons.Rounded.Add,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+
+            AnimatedVisibility(
+                visible = showAdditional,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(Spacing.s),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedTextField(
+                        value = bankName,
+                        onValueChange = { updateField("bank_name", it, FieldType.TEXT) },
+                        label = { Text("Banka Adı") },
+                        placeholder = { Text("örn. Garanti BBVA, Akbank, İş Bankası") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = ShapeTokens.InputRadius,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        )
+                    )
+
+                    OutlinedTextField(
+                        value = iban,
+                        onValueChange = { updateField("iban", it.replace(" ", "").uppercase(), FieldType.IBAN, isSensitive = true) },
+                        label = { Text("Bağlı IBAN Numarası") },
+                        placeholder = { Text("TR33 0006 1005 ...") },
+                        singleLine = true,
+                        visualTransformation = IbanVisualTransformation(),
+                        textStyle = MonospaceSecretStyle,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = ShapeTokens.InputRadius,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        )
+                    )
+
+                    OutlinedTextField(
+                        value = notes,
+                        onValueChange = { updateField("notes", it, FieldType.MULTILINE) },
+                        label = { Text("Kart Notu / Açıklama") },
+                        placeholder = { Text("İnternet alışveriş limiti, hesap kesim tarihi...") },
+                        minLines = 2,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = ShapeTokens.InputRadius,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        )
+                    )
+                }
+            }
+        } else {
+            // IBAN / Bank Account Form
+            OutlinedTextField(
+                value = title,
+                onValueChange = onTitleChange,
+                label = { Text("Hesap Tanımı / Başlık") },
+                placeholder = { Text("örn. İş Bankası Maaş Hesabım") },
+                singleLine = true,
+                isError = titleError,
+                modifier = Modifier.fillMaxWidth(),
+                shape = ShapeTokens.InputRadius,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                )
+            )
+
+            // IBAN
+            OutlinedTextField(
+                value = iban,
+                onValueChange = { updateField("iban", it.replace(" ", "").uppercase(), FieldType.IBAN, isSensitive = true) },
+                label = { Text("IBAN Numarası") },
+                placeholder = { Text("TR33 0006 1005 ...") },
+                singleLine = true,
+                visualTransformation = IbanVisualTransformation(),
+                textStyle = MonospaceSecretStyle,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
+                modifier = Modifier.fillMaxWidth(),
+                shape = ShapeTokens.InputRadius,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                )
+            )
+
+            // Account Holder
+            OutlinedTextField(
+                value = if (accountHolder.isNotEmpty()) accountHolder else cardHolder,
+                onValueChange = {
+                    updateField("account_holder", it.uppercase(), FieldType.TEXT)
+                    updateField("card_holder", it.uppercase(), FieldType.TEXT)
+                },
+                label = { Text("Hesap Sahibi") },
+                placeholder = { Text("AHMET YILMAZ") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
+                modifier = Modifier.fillMaxWidth(),
+                shape = ShapeTokens.InputRadius,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                )
+            )
+
+            // Bank Name
+            OutlinedTextField(
+                value = bankName,
+                onValueChange = { updateField("bank_name", it, FieldType.TEXT) },
+                label = { Text("Banka Adı") },
+                placeholder = { Text("örn. Türkiye İş Bankası, Garanti BBVA") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                shape = ShapeTokens.InputRadius,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                )
+            )
+
+            // Progressive Disclosure: Additional Account Fields
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(ShapeTokens.CardRadius)
+                    .background(MaterialTheme.colorScheme.surfaceContainer)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                        shape = ShapeTokens.CardRadius
+                    )
+                    .clickable { showAdditional = !showAdditional }
+                    .padding(Spacing.m)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = if (showAdditional) "Ek Bilgileri Gizle" else "＋ Ek Bilgiler Ekle (Hesap No, Şube Kodu)",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Icon(
+                        imageVector = if (showAdditional) Icons.Rounded.Remove else Icons.Rounded.Add,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+
+            AnimatedVisibility(
+                visible = showAdditional,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(Spacing.s),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.s)
+                    ) {
+                        OutlinedTextField(
+                            value = branchCode,
+                            onValueChange = { updateField("branch_code", it, FieldType.TEXT) },
+                            label = { Text("Şube Kodu") },
+                            placeholder = { Text("1234") },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f),
+                            shape = ShapeTokens.InputRadius,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                            )
+                        )
+
+                        OutlinedTextField(
+                            value = accountNumber,
+                            onValueChange = { updateField("account_number", it, FieldType.NUMBER) },
+                            label = { Text("Hesap No") },
+                            placeholder = { Text("5678901") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f),
+                            shape = ShapeTokens.InputRadius,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                            )
+                        )
+                    }
+
+                    OutlinedTextField(
+                        value = notes,
+                        onValueChange = { updateField("notes", it, FieldType.MULTILINE) },
+                        label = { Text("Hesap Notu / Açıklama") },
+                        placeholder = { Text("Maaş hesabı, kira ödemeleri...") },
+                        minLines = 2,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = ShapeTokens.InputRadius,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        )
+                    )
+                }
             }
         }
     }
@@ -296,72 +553,79 @@ fun PhysicalCardPreview(
     expiryDate: String,
     cvv: String,
     cardHolder: String,
-    cardBrand: String,
-    modifier: Modifier = Modifier
+    cardBrand: String
 ) {
     Box(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
-            .height(180.dp)
-            .shadow(12.dp, ShapeTokens.CardRadius)
-            .clip(ShapeTokens.CardRadius)
+            .height(200.dp)
+            .shadow(12.dp, RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color(0xFF1E2638),
-                        Color(0xFF131722)
+                        Color(0xFF1E293B),
+                        Color(0xFF0F172A),
+                        Color(0xFF020617)
                     )
                 )
             )
             .border(
                 width = 1.dp,
-                color = Color(0x33ADC6FF),
-                shape = ShapeTokens.CardRadius
+                color = Color.White.copy(alpha = 0.12f),
+                shape = RoundedCornerShape(16.dp)
             )
-            .padding(Spacing.m)
+            .padding(Spacing.l)
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Card Top Row
+            // Card Header: Title + EMV Chip + Brand
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Rounded.CreditCard,
-                        contentDescription = null,
-                        tint = CategoryCardsTint,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(Spacing.xs))
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = Color.White,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
+                // Gold EMV Chip
+                Box(
+                    modifier = Modifier
+                        .size(width = 38.dp, height = 28.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(Color(0xFFFCD34D), Color(0xFFD97706))
+                            )
+                        )
+                )
 
                 Text(
                     text = cardBrand,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = CategoryCardsTint,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White.copy(alpha = 0.9f),
+                    letterSpacing = 2.sp
                 )
             }
 
             // Card Number
+            val formattedNumber = if (cardNumber.isEmpty()) {
+                "•••• •••• •••• ••••"
+            } else {
+                cardNumber.chunked(4).joinToString(" ").padEnd(19, '•')
+            }
+
             Text(
-                text = formatCardNumberDisplay(cardNumber),
-                style = MonospaceSecretStyle.copy(fontSize = 18.sp, letterSpacing = 2.sp),
-                color = Color.White
+                text = formattedNumber,
+                style = MonospaceSecretStyle.copy(
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White,
+                    letterSpacing = 2.sp
+                )
             )
 
-            // Card Bottom Row: Expiry, CVV, Cardholder
+            // Card Footer: Cardholder + Expiry & CVV
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -370,55 +634,62 @@ fun PhysicalCardPreview(
                 Column {
                     Text(
                         text = "KART SAHİBİ",
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                        color = Color(0xFF8E9099)
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.5f),
+                        fontSize = 9.sp
                     )
                     Text(
-                        text = cardHolder.ifEmpty { "İSİM SOYİSİM" },
-                        style = MaterialTheme.typography.labelMedium,
-                        color = Color.White
+                        text = cardHolder.ifEmpty { "AD SOYAD" },
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White,
+                        maxLines = 1
                     )
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(horizontalAlignment = Alignment.End) {
                         Text(
                             text = "SKT",
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                            color = Color(0xFF8E9099)
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.5f),
+                            fontSize = 9.sp
                         )
+                        val formattedExpiry = if (expiryDate.length >= 2) {
+                            "${expiryDate.take(2)}/${expiryDate.drop(2)}"
+                        } else {
+                            expiryDate.ifEmpty { "MM/YY" }
+                        }
                         Text(
-                            text = formatExpiryDisplay(expiryDate),
-                            style = MonospaceSecretStyle.copy(fontSize = 13.sp),
-                            color = Color.White
+                            text = formattedExpiry,
+                            style = MonospaceSecretStyle.copy(
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White
+                            )
                         )
                     }
 
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "CVV",
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                            color = Color(0xFF8E9099)
-                        )
-                        Text(
-                            text = if (cvv.isNotEmpty()) "•••" else "---",
-                            style = MonospaceSecretStyle.copy(fontSize = 13.sp),
-                            color = Color.White
-                        )
+                    if (cvv.isNotEmpty()) {
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = "CVV",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White.copy(alpha = 0.5f),
+                                fontSize = 9.sp
+                            )
+                            Text(
+                                text = cvv,
+                                style = MonospaceSecretStyle.copy(
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color.White
+                                )
+                            )
+                        }
                     }
                 }
             }
         }
     }
-}
-
-fun formatCardNumberDisplay(raw: String): String {
-    if (raw.isEmpty()) return "••••  ••••  ••••  ••••"
-    val padded = raw.padEnd(16, '•')
-    return "${padded.substring(0, 4)}  ${padded.substring(4, 8)}  ${padded.substring(8, 12)}  ${padded.substring(12, 16)}"
-}
-
-fun formatExpiryDisplay(raw: String): String {
-    if (raw.isEmpty()) return "MM/YY"
-    return if (raw.length >= 2) "${raw.substring(0, 2)}/${raw.substring(2)}" else raw
 }

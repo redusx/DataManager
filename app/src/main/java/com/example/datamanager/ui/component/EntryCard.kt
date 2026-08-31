@@ -13,9 +13,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AccountBalance
 import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material.icons.rounded.Badge
 import androidx.compose.material.icons.rounded.CreditCard
 import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +36,7 @@ import com.example.datamanager.data.model.Category
 import com.example.datamanager.data.model.DataEntry
 import com.example.datamanager.data.model.FieldItem
 import com.example.datamanager.data.model.FieldType
+import com.example.datamanager.data.model.TemplateType
 import com.example.datamanager.ui.theme.CategoryCardsTint
 import com.example.datamanager.ui.theme.CategoryIdentityTint
 import com.example.datamanager.ui.theme.CategoryLoginsTint
@@ -61,7 +65,7 @@ fun EntryCard(
 
     // Determine subtitle (Username / Card Number Hint / ID Hint)
     val subtitleField = remember(fields) {
-        fields.firstOrNull { it.key in listOf("username", "email", "card_holder", "first_name", "bank_name", "website") }
+        fields.firstOrNull { it.key in listOf("username", "email", "card_holder", "full_name", "bank_name", "website", "district", "city") }
             ?: fields.firstOrNull { !it.isSensitive && it.value.isNotEmpty() }
     }
 
@@ -75,7 +79,7 @@ fun EntryCard(
     }
 
     val category = Category.fromId(entry.category)
-    val (categoryIcon, categoryTint) = getCategoryVisuals(category)
+    val (categoryIcon, categoryTint) = getEntryVisuals(category, fields)
 
     Box(
         modifier = modifier
@@ -94,7 +98,7 @@ fun EntryCard(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Category Icon Badge (36x36dp)
+            // Template / Category Icon Badge (36x36dp)
             Box(
                 modifier = Modifier
                     .size(36.dp)
@@ -172,11 +176,29 @@ fun EntryCard(
     }
 }
 
-fun getCategoryVisuals(category: Category): Pair<ImageVector, Color> {
-    return when (category) {
-        Category.ACCOUNT -> Icons.Rounded.Lock to CategoryLoginsTint
-        Category.FINANCIAL -> Icons.Rounded.CreditCard to CategoryCardsTint
-        Category.PERSONAL -> Icons.Rounded.AccountCircle to CategoryIdentityTint
-        Category.CUSTOM -> Icons.Rounded.Description to CategoryNotesTint
+fun getEntryVisuals(category: Category, fields: List<FieldItem> = emptyList()): Pair<ImageVector, Color> {
+    val template = if (fields.isNotEmpty()) {
+        TemplateType.detect(category.id, fields)
+    } else {
+        when (category) {
+            Category.ACCOUNT -> TemplateType.LOGIN
+            Category.FINANCIAL -> TemplateType.CARD
+            Category.PERSONAL -> TemplateType.IDENTITY
+            Category.CUSTOM -> TemplateType.SECURE_NOTE
+        }
     }
+
+    return when (template) {
+        TemplateType.LOGIN -> Icons.Rounded.Lock to CategoryLoginsTint
+        TemplateType.CARD -> Icons.Rounded.CreditCard to CategoryCardsTint
+        TemplateType.BANK_ACCOUNT -> Icons.Rounded.AccountBalance to CategoryCardsTint
+        TemplateType.IDENTITY -> Icons.Rounded.Badge to CategoryIdentityTint
+        TemplateType.ADDRESS -> Icons.Rounded.LocationOn to CategoryIdentityTint
+        TemplateType.SECURE_NOTE -> Icons.Rounded.Description to CategoryNotesTint
+        TemplateType.CUSTOM -> Icons.Rounded.Description to CategoryNotesTint
+    }
+}
+
+fun getCategoryVisuals(category: Category): Pair<ImageVector, Color> {
+    return getEntryVisuals(category)
 }

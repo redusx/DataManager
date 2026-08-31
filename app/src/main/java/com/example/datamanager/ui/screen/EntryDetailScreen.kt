@@ -56,7 +56,7 @@ import com.example.datamanager.data.model.FieldItem
 import com.example.datamanager.data.model.TemplateType
 import com.example.datamanager.ui.component.CopyButton
 import com.example.datamanager.ui.component.SensitiveField
-import com.example.datamanager.ui.component.getCategoryVisuals
+import com.example.datamanager.ui.component.getEntryVisuals
 import com.example.datamanager.ui.component.templates.PhysicalCardPreview
 import com.example.datamanager.ui.theme.ShapeTokens
 import com.example.datamanager.ui.theme.Spacing
@@ -145,7 +145,7 @@ fun EntryDetailScreen(
     ) { paddingValues ->
         if (entry != null) {
             val category = Category.fromId(entry.category)
-            val (categoryIcon, categoryTint) = getCategoryVisuals(category)
+            val (categoryIcon, categoryTint) = getEntryVisuals(category, fields)
 
             LazyColumn(
                 modifier = Modifier
