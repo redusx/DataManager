@@ -8,7 +8,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.datamanager.ui.screen.AddEditEntryScreen
 import com.example.datamanager.ui.screen.AuthScreen
-import com.example.datamanager.ui.screen.CategoryDetailScreen
 import com.example.datamanager.ui.screen.EntryDetailScreen
 import com.example.datamanager.ui.screen.HomeScreen
 import com.example.datamanager.ui.screen.SettingsScreen
@@ -16,13 +15,11 @@ import com.example.datamanager.ui.screen.SettingsScreen
 object Routes {
     const val AUTH = "auth"
     const val HOME = "home"
-    const val CATEGORY_DETAIL = "category/{categoryId}"
     const val ENTRY_DETAIL = "entry/{entryId}"
     const val ADD_ENTRY = "addEntry?category={category}"
     const val EDIT_ENTRY = "editEntry/{entryId}"
     const val SETTINGS = "settings"
 
-    fun categoryDetail(categoryId: String) = "category/$categoryId"
     fun entryDetail(entryId: Long) = "entry/$entryId"
     fun addEntry(category: String? = null) = "addEntry?category=${category ?: ""}"
     fun editEntry(entryId: Long) = "editEntry/$entryId"
@@ -50,34 +47,19 @@ fun AppNavigation(
 
         composable(Routes.HOME) {
             HomeScreen(
-                onCategoryClick = { categoryId ->
-                    navController.navigate(Routes.categoryDetail(categoryId))
-                },
-                onEntryClick = { entryId ->
-                    navController.navigate(Routes.entryDetail(entryId))
-                },
-                onAddClick = {
-                    navController.navigate(Routes.addEntry())
-                },
-                onSettingsClick = {
-                    navController.navigate(Routes.SETTINGS)
-                }
-            )
-        }
-
-        composable(
-            route = Routes.CATEGORY_DETAIL,
-            arguments = listOf(navArgument("categoryId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val categoryId = backStackEntry.arguments?.getString("categoryId") ?: "personal"
-            CategoryDetailScreen(
-                category = categoryId,
-                onBackClick = { navController.popBackStack() },
                 onEntryClick = { entryId ->
                     navController.navigate(Routes.entryDetail(entryId))
                 },
                 onAddClick = { category ->
                     navController.navigate(Routes.addEntry(category))
+                },
+                onSettingsClick = {
+                    navController.navigate(Routes.SETTINGS)
+                },
+                onLockClick = {
+                    navController.navigate(Routes.AUTH) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }
@@ -122,7 +104,6 @@ fun AppNavigation(
                 entryId = entryId,
                 onBackClick = { navController.popBackStack() },
                 onSaveSuccess = {
-                    navController.popBackStack()
                     navController.popBackStack()
                 }
             )

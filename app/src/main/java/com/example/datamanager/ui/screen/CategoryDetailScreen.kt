@@ -1,8 +1,5 @@
 package com.example.datamanager.ui.screen
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,17 +12,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Inbox
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Inbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -34,19 +33,20 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.datamanager.R
 import com.example.datamanager.data.model.Category
-import com.example.datamanager.data.model.FieldItem
 import com.example.datamanager.ui.component.EntryCard
+import com.example.datamanager.ui.theme.Spacing
 import com.example.datamanager.ui.viewmodel.EntryViewModel
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import com.example.datamanager.util.ClipboardHelper
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,8 +58,9 @@ fun CategoryDetailScreen(
     viewModel: EntryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val gson = remember { Gson() }
-    val fieldListType = remember { object : TypeToken<List<FieldItem>>() {}.type }
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(category) {
         viewModel.loadCategoryEntries(category)
@@ -73,21 +74,31 @@ fun CategoryDetailScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         text = categoryTitle,
-                        fontWeight = FontWeight.SemiBold
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    IconButton(
+                        onClick = onBackClick,
+                        modifier = Modifier.size(Spacing.touchTargetMin)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = "Geri",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         },
@@ -96,9 +107,14 @@ fun CategoryDetailScreen(
                 onClick = { onAddClick(category) },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = RoundedCornerShape(16.dp)
+                shape = CircleShape,
+                modifier = Modifier.size(56.dp)
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "Add")
+                Icon(
+                    imageVector = Icons.Rounded.Add,
+                    contentDescription = stringResource(R.string.add_entry),
+                    modifier = Modifier.size(26.dp)
+                )
             }
         }
     ) { paddingValues ->
@@ -111,12 +127,12 @@ fun CategoryDetailScreen(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
-                        imageVector = Icons.Filled.Inbox,
+                        imageVector = Icons.Rounded.Inbox,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
                         modifier = Modifier.size(64.dp)
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(Spacing.m))
                     Text(
                         text = stringResource(R.string.no_entries),
                         style = MaterialTheme.typography.bodyLarge,
@@ -128,31 +144,26 @@ fun CategoryDetailScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
-                    .background(MaterialTheme.colorScheme.background),
-                contentPadding = PaddingValues(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(paddingValues),
+                contentPadding = PaddingValues(Spacing.m),
+                verticalArrangement = Arrangement.spacedBy(Spacing.xs)
             ) {
-                items(uiState.categoryEntries) { entry ->
-                    val subtitle = try {
-                        val fields: List<FieldItem> = gson.fromJson(entry.fieldsJson, fieldListType)
-                        fields.firstOrNull()?.let { "${it.key}: ${it.value}" } ?: ""
-                    } catch (e: Exception) {
-                        ""
-                    }
-
-                    AnimatedVisibility(
-                        visible = true,
-                        enter = fadeIn() + slideInVertically()
-                    ) {
-                        EntryCard(
-                            title = entry.title,
-                            subtitle = subtitle,
-                            isFavorite = entry.isFavorite,
-                            onClick = { onEntryClick(entry.id) },
-                            onFavoriteClick = { viewModel.toggleFavorite(entry) }
-                        )
-                    }
+                items(uiState.categoryEntries, key = { it.id }) { entry ->
+                    EntryCard(
+                        entry = entry,
+                        onCardClick = { onEntryClick(entry.id) },
+                        onCopyClick = { secret ->
+                            ClipboardHelper.copyToClipboard(
+                                context = context,
+                                label = entry.title,
+                                text = secret,
+                                isSensitive = true
+                            )
+                            scope.launch {
+                                snackbarHostState.showSnackbar("${entry.title} kopyalandı")
+                            }
+                        }
+                    )
                 }
             }
         }

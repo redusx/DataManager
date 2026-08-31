@@ -5,6 +5,8 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,23 +19,26 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Fingerprint
-import androidx.compose.material.icons.filled.Layers
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Fingerprint
+import androidx.compose.material.icons.rounded.Layers
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Shield
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -59,6 +64,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.datamanager.R
+import com.example.datamanager.ui.theme.ShapeTokens
+import com.example.datamanager.ui.theme.Spacing
 import com.example.datamanager.ui.viewmodel.SettingsViewModel
 import com.example.datamanager.util.BiometricHelper
 import com.example.datamanager.util.BiometricStatus
@@ -86,22 +93,31 @@ fun SettingsScreen(
     val overlayPermMsg = stringResource(R.string.overlay_permission_desc)
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         text = stringResource(R.string.settings),
-                        fontWeight = FontWeight.SemiBold
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    IconButton(
+                        onClick = onBackClick,
+                        modifier = Modifier.size(Spacing.touchTargetMin)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = "Geri",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         }
@@ -109,19 +125,18 @@ fun SettingsScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.background),
-            contentPadding = PaddingValues(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(paddingValues),
+            contentPadding = PaddingValues(Spacing.m),
+            verticalArrangement = Arrangement.spacedBy(Spacing.s)
         ) {
-            // Security section
+            // Security Section
             item {
                 SectionHeader(stringResource(R.string.security))
             }
 
             item {
                 SettingsRow(
-                    icon = Icons.Filled.Lock,
+                    icon = Icons.Rounded.Lock,
                     title = stringResource(R.string.change_pin),
                     onClick = { viewModel.showChangePinDialog() }
                 )
@@ -129,7 +144,7 @@ fun SettingsScreen(
 
             item {
                 SettingsToggleRow(
-                    icon = Icons.Filled.Fingerprint,
+                    icon = Icons.Rounded.Fingerprint,
                     title = stringResource(R.string.biometric_auth),
                     subtitle = stringResource(R.string.biometric_auth_desc),
                     checked = uiState.isBiometricEnabled,
@@ -162,15 +177,15 @@ fun SettingsScreen(
                 )
             }
 
-            // Quick Access / Overlay section
+            // Quick Access / Overlay Section
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Spacing.xs))
                 SectionHeader(stringResource(R.string.overlay_channel_name))
             }
 
             item {
                 SettingsToggleRow(
-                    icon = Icons.Filled.Layers,
+                    icon = Icons.Rounded.Layers,
                     title = stringResource(R.string.overlay_quick_access),
                     subtitle = stringResource(R.string.overlay_quick_access_desc),
                     checked = uiState.isOverlayEnabled,
@@ -199,24 +214,24 @@ fun SettingsScreen(
                 )
             }
 
-            // Data section
+            // Data Section
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Spacing.xs))
                 SectionHeader(stringResource(R.string.data))
             }
 
             item {
                 SettingsRow(
-                    icon = Icons.Filled.Delete,
+                    icon = Icons.Rounded.Delete,
                     title = stringResource(R.string.delete_all_data),
                     titleColor = MaterialTheme.colorScheme.error,
                     onClick = { viewModel.showDeleteDataDialog() }
                 )
             }
 
-            // About section
+            // About Section
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Spacing.xs))
                 SectionHeader(stringResource(R.string.about))
             }
 
@@ -224,27 +239,32 @@ fun SettingsScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                        .padding(16.dp)
+                        .clip(ShapeTokens.CardRadius)
+                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            shape = ShapeTokens.CardRadius
+                        )
+                        .padding(Spacing.m)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Shield,
+                            imageVector = Icons.Rounded.Shield,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(22.dp)
                         )
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(Spacing.s))
                         Column {
                             Text(
-                                text = "DataManager v1.0",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium,
+                                text = "MyVault v1.0",
+                                style = MaterialTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = stringResource(R.string.about_desc),
                                 style = MaterialTheme.typography.bodySmall,
@@ -257,13 +277,21 @@ fun SettingsScreen(
         }
     }
 
-    // Change PIN dialog
+    // Change PIN dialog (Numeric-only 4-6 digits)
     if (uiState.showChangePinDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.hideChangePinDialog() },
-            title = { Text(stringResource(R.string.change_pin)) },
+            shape = ShapeTokens.DialogRadius,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            title = {
+                Text(
+                    text = stringResource(R.string.change_pin),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                     OutlinedTextField(
                         value = uiState.changePinOldPin,
                         onValueChange = viewModel::onChangePinOldPinChanged,
@@ -272,7 +300,11 @@ fun SettingsScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(10.dp)
+                        shape = ShapeTokens.InputRadius,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        )
                     )
                     OutlinedTextField(
                         value = uiState.changePinNewPin,
@@ -282,7 +314,11 @@ fun SettingsScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(10.dp)
+                        shape = ShapeTokens.InputRadius,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        )
                     )
                     OutlinedTextField(
                         value = uiState.changePinConfirmPin,
@@ -292,7 +328,11 @@ fun SettingsScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(10.dp)
+                        shape = ShapeTokens.InputRadius,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        )
                     )
                     if (uiState.changePinError != null) {
                         val errorText = when (uiState.changePinError) {
@@ -301,18 +341,36 @@ fun SettingsScreen(
                             "wrong_old_pin" -> stringResource(R.string.wrong_old_pin)
                             else -> stringResource(R.string.error_generic)
                         }
-                        Text(text = errorText, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            text = errorText,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
                     }
                 }
             },
             confirmButton = {
-                TextButton(onClick = { viewModel.changePin() }) {
-                    Text(stringResource(R.string.save))
+                Button(
+                    onClick = { viewModel.changePin() },
+                    shape = ShapeTokens.ButtonRadius,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text(
+                        text = stringResource(R.string.save),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
                 }
             },
             dismissButton = {
-                TextButton(onClick = { viewModel.hideChangePinDialog() }) {
-                    Text(stringResource(R.string.cancel))
+                OutlinedButton(
+                    onClick = { viewModel.hideChangePinDialog() },
+                    shape = ShapeTokens.ButtonRadius
+                ) {
+                    Text(
+                        text = stringResource(R.string.cancel),
+                        style = MaterialTheme.typography.labelLarge
+                    )
                 }
             }
         )
@@ -322,24 +380,57 @@ fun SettingsScreen(
     if (uiState.showDeleteDataDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.hideDeleteDataDialog() },
-            icon = { Icon(Icons.Filled.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-            title = { Text(stringResource(R.string.delete_all_data)) },
-            text = { Text(stringResource(R.string.delete_all_data_confirm)) },
+            shape = ShapeTokens.DialogRadius,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            icon = {
+                Icon(
+                    imageVector = Icons.Rounded.Warning,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(28.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = stringResource(R.string.delete_all_data),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.delete_all_data_confirm),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             confirmButton = {
-                TextButton(
+                Button(
                     onClick = {
                         scope.launch {
                             viewModel.deleteAllData()
                             onDataDeleted()
                         }
-                    }
+                    },
+                    shape = ShapeTokens.ButtonRadius,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
+                    Text(
+                        text = stringResource(R.string.delete),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onError
+                    )
                 }
             },
             dismissButton = {
-                TextButton(onClick = { viewModel.hideDeleteDataDialog() }) {
-                    Text(stringResource(R.string.cancel))
+                OutlinedButton(
+                    onClick = { viewModel.hideDeleteDataDialog() },
+                    shape = ShapeTokens.ButtonRadius
+                ) {
+                    Text(
+                        text = stringResource(R.string.cancel),
+                        style = MaterialTheme.typography.labelLarge
+                    )
                 }
             }
         )
@@ -350,10 +441,10 @@ fun SettingsScreen(
 private fun SectionHeader(title: String) {
     Text(
         text = title,
-        style = MaterialTheme.typography.titleSmall,
+        style = MaterialTheme.typography.labelLarge,
         fontWeight = FontWeight.Bold,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(vertical = 4.dp)
+        modifier = Modifier.padding(start = Spacing.xxs, top = Spacing.xs, bottom = Spacing.xxs)
     )
 }
 
@@ -367,33 +458,36 @@ private fun SettingsRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-            .padding(16.dp),
+            .clip(ShapeTokens.CardRadius)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant,
+                shape = ShapeTokens.CardRadius
+            )
+            .clickable(onClick = onClick)
+            .padding(Spacing.m),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
             tint = titleColor,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(22.dp)
         )
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(Spacing.s))
         Text(
             text = title,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium,
+            style = MaterialTheme.typography.bodyLarge,
             color = titleColor,
             modifier = Modifier.weight(1f)
         )
-        IconButton(onClick = onClick, modifier = Modifier.size(24.dp)) {
-            Icon(
-                imageVector = Icons.Filled.ChevronRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp)
-            )
-        }
+        Icon(
+            imageVector = Icons.Rounded.ChevronRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(20.dp)
+        )
     }
 }
 
@@ -408,26 +502,31 @@ private fun SettingsToggleRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-            .padding(16.dp),
+            .clip(ShapeTokens.CardRadius)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant,
+                shape = ShapeTokens.CardRadius
+            )
+            .padding(Spacing.m),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(22.dp)
         )
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(Spacing.s))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
+                style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
             if (subtitle != null) {
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
@@ -435,6 +534,7 @@ private fun SettingsToggleRow(
                 )
             }
         }
+        Spacer(modifier = Modifier.width(Spacing.s))
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange

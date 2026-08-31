@@ -5,6 +5,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,14 +15,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.LockOpen
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.LockOpen
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -29,6 +27,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,13 +39,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.datamanager.R
 import com.example.datamanager.data.model.FieldItem
 import com.example.datamanager.data.model.FieldType
+import com.example.datamanager.ui.theme.ShapeTokens
+import com.example.datamanager.ui.theme.Spacing
 
 @Composable
 fun DynamicFieldEditor(
@@ -58,7 +58,7 @@ fun DynamicFieldEditor(
         modifier = modifier
             .fillMaxWidth()
             .animateContentSize(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(Spacing.s)
     ) {
         fields.forEachIndexed { index, field ->
             FieldEditorRow(
@@ -83,16 +83,19 @@ fun DynamicFieldEditor(
                 newList.add(FieldItem("", "", FieldType.TEXT))
                 onFieldsChanged(newList)
             },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            modifier = Modifier.fillMaxWidth().height(44.dp),
+            shape = ShapeTokens.ButtonRadius
         ) {
             Icon(
-                imageVector = Icons.Filled.Add,
-                contentDescription = "Add field",
+                imageVector = Icons.Rounded.Add,
+                contentDescription = "Alan ekle",
                 modifier = Modifier.size(18.dp)
             )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(text = stringResource(R.string.add_field))
+            Spacer(modifier = Modifier.width(Spacing.xs))
+            Text(
+                text = stringResource(R.string.add_field),
+                style = MaterialTheme.typography.labelMedium
+            )
         }
     }
 }
@@ -110,9 +113,14 @@ private fun FieldEditorRow(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-            .padding(12.dp)
+            .clip(ShapeTokens.CardRadius)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant,
+                shape = ShapeTokens.CardRadius
+            )
+            .padding(Spacing.s)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -126,28 +134,32 @@ private fun FieldEditorRow(
                 label = { Text(stringResource(R.string.field_label)) },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(10.dp)
+                shape = ShapeTokens.InputRadius,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                )
             )
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(Spacing.xs))
 
             // Remove button
             AnimatedVisibility(visible = canRemove, enter = fadeIn(), exit = fadeOut()) {
                 IconButton(
                     onClick = onRemove,
-                    modifier = Modifier.size(36.dp)
+                    modifier = Modifier.size(Spacing.touchTargetMin)
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = "Remove",
+                        imageVector = Icons.Rounded.Close,
+                        contentDescription = "Kaldır",
                         tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(Spacing.xs))
 
         // Field value
         OutlinedTextField(
@@ -157,10 +169,14 @@ private fun FieldEditorRow(
             singleLine = true,
             visualTransformation = if (field.isSensitive) PasswordVisualTransformation() else VisualTransformation.None,
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(10.dp)
+            shape = ShapeTokens.InputRadius,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+            )
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(Spacing.xs))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -171,7 +187,7 @@ private fun FieldEditorRow(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 OutlinedButton(
                     onClick = { showTypeMenu = true },
-                    shape = RoundedCornerShape(8.dp)
+                    shape = ShapeTokens.ButtonRadius
                 ) {
                     Text(
                         text = field.type.name,
@@ -198,18 +214,18 @@ private fun FieldEditorRow(
             // Sensitive toggle
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    imageVector = if (field.isSensitive) Icons.Filled.Lock else Icons.Filled.LockOpen,
-                    contentDescription = "Sensitive",
+                    imageVector = if (field.isSensitive) Icons.Rounded.Lock else Icons.Rounded.LockOpen,
+                    contentDescription = "Hassas",
                     tint = if (field.isSensitive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(16.dp)
                 )
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(Spacing.xxs))
                 Text(
                     text = stringResource(R.string.sensitive),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(Spacing.xxs))
                 Switch(
                     checked = field.isSensitive,
                     onCheckedChange = { onFieldChanged(field.copy(isSensitive = it)) }

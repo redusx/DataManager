@@ -2,23 +2,25 @@ package com.example.datamanager.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.datamanager.data.dao.CategoryCount
 import com.example.datamanager.data.model.DataEntry
 import com.example.datamanager.data.repository.DataRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class HomeUiState(
+    val entries: List<DataEntry> = emptyList(),
     val categoryCounts: Map<String, Int> = emptyMap(),
-    val favorites: List<DataEntry> = emptyList(),
+    val totalCount: Int = 0,
+    val selectedCategory: String? = null,
     val searchQuery: String = "",
-    val searchResults: List<DataEntry> = emptyList(),
-    val isSearching: Boolean = false
+    val isLoading: Boolean = false
 )
 
 @HiltViewModel
@@ -26,42 +28,51 @@ class HomeViewModel @Inject constructor(
     private val dataRepository: DataRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(HomeUiState())
-    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+    private val _selectedCategory = MutableStateFlow<String?>(null)
+    private val _searchQuery = MutableStateFlow("")
 
-    init {
-        observeData()
-    }
+    val uiState: StateFlow<HomeUiState> = combine(
+        dataRepository.getAllEntries(),
+        dataRepository.getCategoryCounts(),
+        _selectedCategory,
+        _searchQuery
+    ) { allEntries, counts, selectedCategory, searchQuery ->
+        val countMap = counts.associate { it.category to it.count }
+        val total = allEntries.size
 
-    private fun observeData() {
-        viewModelScope.launch {
-            combine(
-                dataRepository.getCategoryCounts(),
-                dataRepository.getFavorites()
-            ) { counts, favorites ->
-                val countMap = counts.associate { it.category to it.count }
-                _uiState.value = _uiState.value.copy(
-                    categoryCounts = countMap,
-                    favorites = favorites
-                )
-            }.collect {}
+        val filtered = allEntries.filter { entry ->
+            val matchesCategory = selectedCategory == null || entry.category == selectedCategory
+            val matchesQuery = searchQuery.isEmpty() ||
+                    entry.title.contains(searchQuery, ignoreCase = true) ||
+                    entry.fieldsJson.contains(searchQuery, ignoreCase = true)
+
+            matchesCategory && matchesQuery
         }
-    }
+
+        HomeUiState(
+            entries = filtered,
+            categoryCounts = countMap,
+            totalCount = total,
+            selectedCategory = selectedCategory,
+            searchQuery = searchQuery,
+            isLoading = false
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = HomeUiState(isLoading = true)
+    )
 
     fun onSearchQueryChanged(query: String) {
-        _uiState.value = _uiState.value.copy(
-            searchQuery = query,
-            isSearching = query.isNotEmpty()
-        )
-        if (query.isNotEmpty()) {
-            viewModelScope.launch {
-                dataRepository.searchEntries(query).collect { results ->
-                    _uiState.value = _uiState.value.copy(searchResults = results)
-                }
-            }
-        } else {
-            _uiState.value = _uiState.value.copy(searchResults = emptyList())
-        }
+        _searchQuery.value = query
+    }
+
+    fun onCategorySelected(categoryId: String?) {
+        _selectedCategory.value = categoryId
+    }
+
+    fun clearSearch() {
+        _searchQuery.value = ""
     }
 
     fun toggleFavorite(entry: DataEntry) {

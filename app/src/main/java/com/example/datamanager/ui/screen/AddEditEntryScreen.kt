@@ -1,7 +1,5 @@
 package com.example.datamanager.ui.screen
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,14 +10,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -39,17 +38,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.datamanager.R
 import com.example.datamanager.data.model.Category
 import com.example.datamanager.data.model.Templates
 import com.example.datamanager.ui.component.DynamicFieldEditor
-import com.example.datamanager.ui.theme.ShieldGold
+import com.example.datamanager.ui.theme.ShapeTokens
+import com.example.datamanager.ui.theme.Spacing
 import com.example.datamanager.ui.viewmodel.EntryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,31 +80,43 @@ fun AddEditEntryScreen(
     val isEditing = entryId != null && entryId > 0
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         text = if (isEditing) stringResource(R.string.edit_entry)
                         else stringResource(R.string.add_entry),
-                        fontWeight = FontWeight.SemiBold
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    IconButton(
+                        onClick = onBackClick,
+                        modifier = Modifier.size(Spacing.touchTargetMin)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = "Geri",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.onFavoriteToggled() }) {
+                    IconButton(
+                        onClick = { viewModel.onFavoriteToggled() },
+                        modifier = Modifier.size(Spacing.touchTargetMin)
+                    ) {
                         Icon(
-                            imageVector = if (uiState.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                            contentDescription = "Favorite",
-                            tint = if (uiState.isFavorite) ShieldGold else MaterialTheme.colorScheme.onSurfaceVariant
+                            imageVector = if (uiState.isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                            contentDescription = "Favori",
+                            tint = if (uiState.isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         }
@@ -114,12 +124,11 @@ fun AddEditEntryScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.background),
-            contentPadding = PaddingValues(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(paddingValues),
+            contentPadding = PaddingValues(Spacing.m),
+            verticalArrangement = Arrangement.spacedBy(Spacing.m)
         ) {
-            // Title
+            // Title Input
             item {
                 OutlinedTextField(
                     value = uiState.title,
@@ -128,14 +137,18 @@ fun AddEditEntryScreen(
                     singleLine = true,
                     isError = uiState.error == "title_required",
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = ShapeTokens.InputRadius,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                    )
                 )
                 if (uiState.error == "title_required") {
                     Text(
                         text = stringResource(R.string.title_required),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                        modifier = Modifier.padding(start = Spacing.xs, top = Spacing.xxs)
                     )
                 }
             }
@@ -145,14 +158,14 @@ fun AddEditEntryScreen(
                 Column {
                     Text(
                         text = stringResource(R.string.category),
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(Spacing.xxs))
                     Row {
                         OutlinedButton(
                             onClick = { showCategoryMenu = true },
-                            shape = RoundedCornerShape(12.dp)
+                            shape = ShapeTokens.ButtonRadius
                         ) {
                             val categoryName = when (Category.fromId(uiState.category)) {
                                 Category.PERSONAL -> stringResource(R.string.category_personal)
@@ -160,7 +173,7 @@ fun AddEditEntryScreen(
                                 Category.ACCOUNT -> stringResource(R.string.category_accounts)
                                 Category.CUSTOM -> stringResource(R.string.category_custom)
                             }
-                            Text(text = categoryName)
+                            Text(text = categoryName, style = MaterialTheme.typography.labelMedium)
                         }
                         DropdownMenu(
                             expanded = showCategoryMenu,
@@ -192,18 +205,21 @@ fun AddEditEntryScreen(
                     Column {
                         Text(
                             text = stringResource(R.string.templates),
-                            style = MaterialTheme.typography.labelLarge,
+                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(Spacing.xxs))
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
                         ) {
                             OutlinedButton(
                                 onClick = { showTemplateMenu = true },
-                                shape = RoundedCornerShape(12.dp)
+                                shape = ShapeTokens.ButtonRadius
                             ) {
-                                Text(stringResource(R.string.use_template))
+                                Text(
+                                    text = stringResource(R.string.use_template),
+                                    style = MaterialTheme.typography.labelMedium
+                                )
                             }
                             DropdownMenu(
                                 expanded = showTemplateMenu,
@@ -236,35 +252,35 @@ fun AddEditEntryScreen(
                 Text(
                     text = stringResource(R.string.fields),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(Spacing.xs))
                 DynamicFieldEditor(
                     fields = uiState.fields,
                     onFieldsChanged = viewModel::onFieldsChanged
                 )
             }
 
-            // Save button
+            // Save CTA button
             item {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(Spacing.xs))
                 Button(
                     onClick = { viewModel.saveEntry() },
                     enabled = !uiState.isSaving,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp),
-                    shape = RoundedCornerShape(14.dp)
+                        .height(48.dp),
+                    shape = ShapeTokens.ButtonRadius,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Text(
                         text = if (uiState.isSaving) stringResource(R.string.saving)
                         else stringResource(R.string.save),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(Spacing.xxl))
             }
         }
     }

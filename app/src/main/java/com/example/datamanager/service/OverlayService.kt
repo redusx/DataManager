@@ -53,6 +53,8 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
         private const val NOTIFICATION_ID = 1001
         private const val PREFS_SETTINGS = "datamanager_ui_settings"
         private const val KEY_OVERLAY_ENABLED = "overlay_enabled"
+        private const val KEY_BUBBLE_X = "bubble_last_x"
+        private const val KEY_BUBBLE_Y = "bubble_last_y"
 
         fun start(context: Context) {
             val intent = Intent(context, OverlayService::class.java)
@@ -89,6 +91,34 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
     private var isExpanded = false
 
     private var bubbleParams: WindowManager.LayoutParams? = null
+    private var lastBubbleX: Int = -1
+    private var lastBubbleY: Int = -1
+
+    private fun getSavedBubbleX(density: Float): Int {
+        if (lastBubbleX != -1) return lastBubbleX
+        val prefs = getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE)
+        val defaultX = (20 * density).toInt()
+        lastBubbleX = prefs.getInt(KEY_BUBBLE_X, defaultX)
+        return lastBubbleX
+    }
+
+    private fun getSavedBubbleY(density: Float): Int {
+        if (lastBubbleY != -1) return lastBubbleY
+        val prefs = getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE)
+        val defaultY = (200 * density).toInt()
+        lastBubbleY = prefs.getInt(KEY_BUBBLE_Y, defaultY)
+        return lastBubbleY
+    }
+
+    private fun saveBubblePosition(x: Int, y: Int) {
+        lastBubbleX = x
+        lastBubbleY = y
+        getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE)
+            .edit()
+            .putInt(KEY_BUBBLE_X, x)
+            .putInt(KEY_BUBBLE_Y, y)
+            .apply()
+    }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -190,23 +220,39 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
     private fun showBubble() {
         if (bubbleView != null) return
 
-        val imageView = android.widget.ImageView(this).apply {
-            setImageResource(R.drawable.ic_shield)
-            setPadding(24, 24, 24, 24)
-            setBackgroundResource(android.R.drawable.dialog_holo_dark_frame)
-            elevation = 16f
+        val density = resources.displayMetrics.density
+        val bubbleSize = (52 * density).toInt() // 52dp compact floating button
+        val iconPadding = (15 * density).toInt() // Smaller, refined shield icon (~22dp)
+
+        val backgroundDrawable = android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+            cornerRadius = 16 * density // Smooth oval/squircle corners
+            setColor(0xFF1E222A.toInt()) // Tonal dark surface container
+            setStroke((1.5f * density).toInt(), 0x66ADC6FF.toInt()) // Subtle sapphire border
         }
 
+        val imageView = android.widget.ImageView(this).apply {
+            setImageResource(R.drawable.ic_shield)
+            setPadding(iconPadding, iconPadding, iconPadding, iconPadding)
+            background = backgroundDrawable
+            elevation = 16f
+            clipToOutline = true
+            scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+        }
+
+        val posX = getSavedBubbleX(density)
+        val posY = getSavedBubbleY(density)
+
         bubbleParams = WindowManager.LayoutParams(
-            160,
-            160,
+            bubbleSize,
+            bubbleSize,
             getOverlayType(),
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
-            x = 20
-            y = 400
+            x = posX
+            y = posY
         }
 
         var initialX = 0
@@ -218,6 +264,7 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
         imageView.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
+                    imageView.animate().scaleX(0.92f).scaleY(0.92f).setDuration(80).start()
                     initialX = bubbleParams?.x ?: 0
                     initialY = bubbleParams?.y ?: 0
                     initialTouchX = event.rawX
@@ -231,15 +278,28 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
                     if (dx * dx + dy * dy > 100) {
                         isDragging = true
                     }
-                    bubbleParams?.x = initialX + dx.toInt()
-                    bubbleParams?.y = initialY + dy.toInt()
+                    val displayMetrics = resources.displayMetrics
+                    val maxX = displayMetrics.widthPixels - bubbleSize
+                    val maxY = displayMetrics.heightPixels - bubbleSize
+
+                    val newX = (initialX + dx.toInt()).coerceIn(0, maxX)
+                    val newY = (initialY + dy.toInt()).coerceIn(0, maxY)
+
+                    bubbleParams?.x = newX
+                    bubbleParams?.y = newY
+                    lastBubbleX = newX
+                    lastBubbleY = newY
+
                     if (bubbleView != null && bubbleParams != null) {
                         windowManager?.updateViewLayout(bubbleView, bubbleParams)
                     }
                     true
                 }
-                MotionEvent.ACTION_UP -> {
-                    if (!isDragging) {
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    imageView.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start()
+                    if (isDragging) {
+                        saveBubblePosition(lastBubbleX, lastBubbleY)
+                    } else if (event.action == MotionEvent.ACTION_UP) {
                         // Toggle expand floating panel
                         toggleExpanded()
                     }
@@ -255,6 +315,10 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
 
     private fun removeBubble() {
         bubbleView?.let {
+            bubbleParams?.let { params ->
+                lastBubbleX = params.x
+                lastBubbleY = params.y
+            }
             try {
                 windowManager?.removeView(it)
             } catch (e: Exception) {

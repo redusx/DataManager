@@ -1,14 +1,8 @@
 package com.example.datamanager.ui.screen
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -20,8 +14,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,8 +29,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -44,7 +38,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.datamanager.R
 import com.example.datamanager.ui.component.PinDots
 import com.example.datamanager.ui.component.PinKeypad
-import com.example.datamanager.ui.theme.ShieldBlue
+import com.example.datamanager.ui.theme.Spacing
 import com.example.datamanager.ui.viewmodel.AuthMode
 import com.example.datamanager.ui.viewmodel.AuthViewModel
 import kotlinx.coroutines.delay
@@ -68,73 +62,56 @@ fun AuthScreen(
     LaunchedEffect(uiState.mode, uiState.isBiometricAvailable) {
         if (uiState.mode == AuthMode.ENTER_PIN && uiState.isBiometricAvailable && !uiState.isLockedOut && !hasAutoPromptedBiometric) {
             hasAutoPromptedBiometric = true
-            delay(300)
+            delay(250)
             onBiometricRequested {
                 viewModel.onBiometricSuccess()
             }
         }
     }
 
-    val infiniteTransition = rememberInfiniteTransition(label = "shield_pulse")
-    val pulseAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.7f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1500),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulse_alpha"
-    )
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.background,
-                        MaterialTheme.colorScheme.surface
-                    )
-                )
-            )
+            .background(MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(32.dp),
+                .padding(horizontal = Spacing.xl, vertical = Spacing.l),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(Spacing.l))
 
-            // Shield icon + title
+            // Shield icon + App Title & Instruction
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                AnimatedVisibility(
-                    visible = true,
-                    enter = scaleIn() + fadeIn()
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Shield,
-                        contentDescription = "Shield",
-                        tint = ShieldBlue,
-                        modifier = Modifier
-                            .size(72.dp)
-                            .alpha(pulseAlpha)
+                        imageVector = Icons.Rounded.Shield,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(38.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Spacing.m))
 
                 Text(
-                    text = "DataManager",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
+                    text = "MyVault",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(Spacing.xs))
 
                 val subtitle = when (uiState.mode) {
                     AuthMode.SETUP_PIN -> stringResource(R.string.setup_pin)
@@ -151,7 +128,7 @@ fun AuthScreen(
                 )
             }
 
-            // PIN dots
+            // PIN indicator dots + Error message
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -167,7 +144,7 @@ fun AuthScreen(
                     isError = uiState.isError
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Spacing.m))
 
                 // Error message
                 AnimatedVisibility(
@@ -196,7 +173,7 @@ fun AuthScreen(
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.padding(top = Spacing.xs)
                     )
                 }
             }
@@ -216,11 +193,11 @@ fun AuthScreen(
                             }
                         }
                     } else null,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = Spacing.s)
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Spacing.s))
         }
     }
 }
