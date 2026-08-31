@@ -1,36 +1,62 @@
 package com.example.datamanager.ui.screen
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Shield
+import androidx.compose.material.icons.automirrored.rounded.HelpOutline
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.DeleteForever
+import androidx.compose.material.icons.rounded.Fingerprint
+import androidx.compose.material.icons.rounded.Warning
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -39,23 +65,42 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.datamanager.R
 import com.example.datamanager.ui.component.PinDots
 import com.example.datamanager.ui.component.PinKeypad
+import com.example.datamanager.ui.theme.DarkSuccess
+import com.example.datamanager.ui.theme.ShapeTokens
 import com.example.datamanager.ui.theme.Spacing
 import com.example.datamanager.ui.viewmodel.AuthMode
 import com.example.datamanager.ui.viewmodel.AuthViewModel
+import com.example.datamanager.util.BiometricHelper
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthScreen(
     onAuthenticated: () -> Unit,
     onBiometricRequested: (onSuccess: () -> Unit) -> Unit,
+    onBiometricResetRequested: (onSuccess: () -> Unit, onError: () -> Unit) -> Unit,
+    onDeviceCredentialRequested: (title: String, subtitle: String, onSuccess: () -> Unit, onError: (String) -> Unit) -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
     var hasAutoPromptedBiometric by rememberSaveable { mutableStateOf(false) }
+    var showRecoveryOptionsSheet by remember { mutableStateOf(false) }
+    var showWipeConfirmDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.mode) {
         if (uiState.mode == AuthMode.AUTHENTICATED) {
             onAuthenticated()
+        }
+    }
+
+    LaunchedEffect(uiState.resetSuccessMessage) {
+        uiState.resetSuccessMessage?.let { msg ->
+            snackbarHostState.showSnackbar(msg)
+            viewModel.clearResetSuccessMessage()
         }
     }
 
@@ -70,6 +115,10 @@ fun AuthScreen(
         }
     }
 
+    val isBiometricAvailable = remember(context) {
+        BiometricHelper.canAuthenticate(context)
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -78,27 +127,27 @@ fun AuthScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = Spacing.xl, vertical = Spacing.l),
+                .padding(horizontal = Spacing.xl, vertical = Spacing.m),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Spacer(modifier = Modifier.height(Spacing.l))
+            Spacer(modifier = Modifier.height(Spacing.s))
 
-            // Shield icon + App Title & Instruction
+            // App Logo + Title & Instruction
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                androidx.compose.foundation.Image(
-                    painter = androidx.compose.ui.res.painterResource(id = com.example.datamanager.R.drawable.app_icon),
+                Image(
+                    painter = painterResource(id = R.drawable.app_icon),
                     contentDescription = "MyVault Logo",
-                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(80.dp)
-                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(20.dp))
+                        .size(76.dp)
+                        .clip(RoundedCornerShape(20.dp))
                         .border(
                             width = 1.dp,
                             color = MaterialTheme.colorScheme.outlineVariant,
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
+                            shape = RoundedCornerShape(20.dp)
                         )
                 )
 
@@ -114,7 +163,7 @@ fun AuthScreen(
                 Spacer(modifier = Modifier.height(Spacing.xs))
 
                 val subtitle = when (uiState.mode) {
-                    AuthMode.SETUP_PIN -> stringResource(R.string.setup_pin)
+                    AuthMode.SETUP_PIN -> if (uiState.isResettingPinWithBiometric) "Yeni 6 Haneli PIN Belirleyin" else stringResource(R.string.setup_pin)
                     AuthMode.CONFIRM_PIN -> stringResource(R.string.confirm_pin)
                     AuthMode.ENTER_PIN -> stringResource(R.string.enter_pin)
                     else -> ""
@@ -178,26 +227,333 @@ fun AuthScreen(
                 }
             }
 
-            // Keypad
-            AnimatedVisibility(
-                visible = uiState.mode != AuthMode.LOADING && uiState.mode != AuthMode.AUTHENTICATED,
-                enter = slideInVertically(initialOffsetY = { it / 2 }) + fadeIn()
+            // Keypad + Forgot Password Action
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                PinKeypad(
-                    onDigitClick = { viewModel.onDigitEntered(it) },
-                    onDeleteClick = { viewModel.onDeleteDigit() },
-                    onBiometricClick = if (uiState.isBiometricAvailable && uiState.mode == AuthMode.ENTER_PIN) {
-                        {
-                            onBiometricRequested {
-                                viewModel.onBiometricSuccess()
+                AnimatedVisibility(
+                    visible = uiState.mode != AuthMode.LOADING && uiState.mode != AuthMode.AUTHENTICATED,
+                    enter = slideInVertically(initialOffsetY = { it / 2 }) + fadeIn()
+                ) {
+                    PinKeypad(
+                        onDigitClick = { viewModel.onDigitEntered(it) },
+                        onDeleteClick = { viewModel.onDeleteDigit() },
+                        onBiometricClick = if (uiState.isBiometricAvailable && uiState.mode == AuthMode.ENTER_PIN) {
+                            {
+                                onBiometricRequested {
+                                    viewModel.onBiometricSuccess()
+                                }
                             }
-                        }
-                    } else null,
-                    modifier = Modifier.padding(horizontal = Spacing.s)
-                )
+                        } else null,
+                        modifier = Modifier.padding(horizontal = Spacing.s)
+                    )
+                }
+
+                if (uiState.mode == AuthMode.ENTER_PIN) {
+                    Spacer(modifier = Modifier.height(Spacing.xs))
+                    TextButton(
+                        onClick = { showRecoveryOptionsSheet = true },
+                        shape = ShapeTokens.ButtonRadius
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.HelpOutline,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(Spacing.xxs))
+                        Text(
+                            text = "Şifremi Unuttum",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(Spacing.s))
+            Spacer(modifier = Modifier.height(Spacing.xs))
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
+
+    // Modal BottomSheet with Recovery Options (Option 1 vs Option 2)
+    if (showRecoveryOptionsSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showRecoveryOptionsSheet = false },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            shape = ShapeTokens.BottomSheetRadius,
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Spacing.m)
+                    .padding(bottom = Spacing.xxl)
+            ) {
+                Text(
+                    text = "PIN Kurtarma & Sıfırlama",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(Spacing.xxs))
+
+                Text(
+                    text = "Kasanıza erişim veya sıfırlama yönteminizi seçin.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(Spacing.m))
+
+                // Option 1: Biometric PIN Reset (Keeps Data)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(ShapeTokens.CardRadius)
+                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                        .border(
+                            width = 1.dp,
+                            color = if (isBiometricAvailable) DarkSuccess.copy(alpha = 0.4f) else MaterialTheme.colorScheme.outlineVariant,
+                            shape = ShapeTokens.CardRadius
+                        )
+                        .clickable(enabled = isBiometricAvailable) {
+                            showRecoveryOptionsSheet = false
+                            onBiometricResetRequested(
+                                { viewModel.onBiometricResetVerified() },
+                                {
+                                    Toast.makeText(context, "Parmak izi doğrulanamadı", Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                        }
+                        .padding(Spacing.m)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(if (isBiometricAvailable) DarkSuccess.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceContainerHigh),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Fingerprint,
+                                contentDescription = null,
+                                tint = if (isBiometricAvailable) DarkSuccess else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(Spacing.m))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Parmak İzi ile PIN Değiştir",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Spacer(modifier = Modifier.width(Spacing.xs))
+                                Box(
+                                    modifier = Modifier
+                                        .clip(ShapeTokens.BadgeRadius)
+                                        .background(DarkSuccess.copy(alpha = 0.15f))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = "Veriler Korunur",
+                                        style = MaterialTheme.typography.labelSmall.copy(color = DarkSuccess)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = if (isBiometricAvailable)
+                                    "Parmak izinizi doğrulayarak verileriniz silinmeden hemen yeni bir PIN belirleyin."
+                                else
+                                    "Cihazınızda kayıtlı parmak izi bulunamadı.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Icon(
+                            imageVector = Icons.Rounded.ChevronRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(Spacing.s))
+
+                // Option 2: Factory Reset (Protected by Phone Screen Lock)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(ShapeTokens.CardRadius)
+                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.error.copy(alpha = 0.4f),
+                            shape = ShapeTokens.CardRadius
+                        )
+                        .clickable {
+                            showRecoveryOptionsSheet = false
+                            showWipeConfirmDialog = true
+                        }
+                        .padding(Spacing.m)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.error.copy(alpha = 0.15f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.DeleteForever,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(Spacing.m))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Tüm Verileri Sil ve Sıfırla",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Spacer(modifier = Modifier.width(Spacing.xs))
+                                Box(
+                                    modifier = Modifier
+                                        .clip(ShapeTokens.BadgeRadius)
+                                        .background(MaterialTheme.colorScheme.error.copy(alpha = 0.15f))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = "Tüm Veriler Silinir",
+                                        style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.error)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "PIN ve parmak izinizi hatırlamıyorsanız kullanılır. Yetkisiz sıfırlamaları önlemek için telefon kilit şifreniz istenir.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Icon(
+                            imageVector = Icons.Rounded.ChevronRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // Factory Reset Confirmation Dialog (Protected by Phone Screen Lock)
+    if (showWipeConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showWipeConfirmDialog = false },
+            shape = ShapeTokens.DialogRadius,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            icon = {
+                Icon(
+                    imageVector = Icons.Rounded.Warning,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = "Kasayı Sıfırla",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                    Text(
+                        text = "PIN kodunuzu veya parmak izinizi hatırlamıyorsanız kasanızı sıfırlayabilirsiniz.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "⚠️ DİKKAT: Kasanızdaki tüm kayıtlar ve şifreler kalıcı olarak silinecek ve yeni bir PIN oluşturulacaktır.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = "Yetkisiz sıfırlamaları önlemek için telefonunuzun ekran kilit şifresi / deseni istenecektir.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showWipeConfirmDialog = false
+                        onDeviceCredentialRequested(
+                            "Kasayı Sıfırlama Doğrulaması",
+                            "Tüm verileri silip kasayı sıfırlamak için telefon kilit şifrenizi girin.",
+                            {
+                                viewModel.wipeAndResetVault()
+                            },
+                            { errorMsg ->
+                                Toast.makeText(context, "Doğrulama başarısız: $errorMsg", Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    },
+                    shape = ShapeTokens.ButtonRadius,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text(
+                        text = "Telefon Şifresiyle Sıfırla",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onError
+                    )
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = { showWipeConfirmDialog = false },
+                    shape = ShapeTokens.ButtonRadius
+                ) {
+                    Text(
+                        text = stringResource(R.string.cancel),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            }
+        )
     }
 }

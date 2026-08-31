@@ -1,11 +1,19 @@
 package com.example.datamanager.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.datamanager.data.database.AppDatabase
 import com.example.datamanager.data.repository.AuthRepository
+import com.example.datamanager.data.repository.DataRepository
+import com.example.datamanager.data.security.CryptoManager
+import com.example.datamanager.data.security.KeystoreManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class AuthUiState(
@@ -18,7 +26,10 @@ data class AuthUiState(
     val isLockedOut: Boolean = false,
     val lockoutRemainingMs: Long = 0,
     val isBiometricAvailable: Boolean = false,
-    val isPinSetup: Boolean = false
+    val isPinSetup: Boolean = false,
+    val isResettingPinWithBiometric: Boolean = false,
+    val showResetVaultDialog: Boolean = false,
+    val resetSuccessMessage: String? = null
 )
 
 enum class AuthMode {
@@ -31,7 +42,11 @@ enum class AuthMode {
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    @param:ApplicationContext private val context: Context,
+    private val authRepository: AuthRepository,
+    private val dataRepository: DataRepository,
+    private val keystoreManager: KeystoreManager,
+    private val cryptoManager: CryptoManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
@@ -73,7 +88,10 @@ class AuthViewModel @Inject constructor(
                     if (newConfirm == currentState.pin) {
                         val success = authRepository.setupPin(newConfirm)
                         if (success) {
-                            _uiState.value = _uiState.value.copy(mode = AuthMode.AUTHENTICATED)
+                            _uiState.value = _uiState.value.copy(
+                                mode = AuthMode.AUTHENTICATED,
+                                isResettingPinWithBiometric = false
+                            )
                         } else {
                             _uiState.value = _uiState.value.copy(
                                 mode = AuthMode.SETUP_PIN,
@@ -141,6 +159,61 @@ class AuthViewModel @Inject constructor(
 
     fun onBiometricSuccess() {
         _uiState.value = _uiState.value.copy(mode = AuthMode.AUTHENTICATED)
+    }
+
+    fun onBiometricResetVerified() {
+        // Biometric verified: Transition to SETUP_PIN to enter a new PIN without wiping data!
+        _uiState.value = _uiState.value.copy(
+            mode = AuthMode.SETUP_PIN,
+            pin = "",
+            confirmPin = "",
+            isError = false,
+            errorMessage = null,
+            isResettingPinWithBiometric = true,
+            showResetVaultDialog = false,
+            resetSuccessMessage = "Parmak iziniz doğrulandı. Lütfen yeni 6 haneli PIN kodunuzu belirleyin."
+        )
+    }
+
+    fun showResetVaultDialog() {
+        _uiState.value = _uiState.value.copy(showResetVaultDialog = true)
+    }
+
+    fun hideResetVaultDialog() {
+        _uiState.value = _uiState.value.copy(showResetVaultDialog = false)
+    }
+
+    fun clearResetSuccessMessage() {
+        _uiState.value = _uiState.value.copy(resetSuccessMessage = null)
+    }
+
+    fun wipeAndResetVault() {
+        viewModelScope.launch {
+            try {
+                dataRepository.deleteAllEntries()
+            } catch (e: Exception) {
+                // Ignore
+            }
+            AppDatabase.destroyInstance()
+            context.deleteDatabase(AppDatabase.DATABASE_NAME)
+            authRepository.deleteAllData()
+            cryptoManager.clearDbPassphrase(context)
+            keystoreManager.deleteAllKeys()
+
+            _uiState.value = _uiState.value.copy(
+                mode = AuthMode.SETUP_PIN,
+                pin = "",
+                confirmPin = "",
+                isPinSetup = false,
+                isError = false,
+                errorMessage = null,
+                failedAttempts = 0,
+                isLockedOut = false,
+                showResetVaultDialog = false,
+                isResettingPinWithBiometric = false,
+                resetSuccessMessage = "Kasa sıfırlandı. Lütfen yeni bir PIN oluşturun."
+            )
+        }
     }
 
     fun isBiometricEnabled(): Boolean = authRepository.isBiometricEnabled()

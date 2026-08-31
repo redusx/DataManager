@@ -29,7 +29,9 @@ object Routes {
 @Composable
 fun AppNavigation(
     navController: NavHostController,
-    onBiometricRequested: (onSuccess: () -> Unit) -> Unit
+    onBiometricRequested: (onSuccess: () -> Unit) -> Unit,
+    onBiometricResetRequested: (onSuccess: () -> Unit, onError: () -> Unit) -> Unit,
+    onDeviceCredentialRequested: (title: String, subtitle: String, onSuccess: () -> Unit, onError: (String) -> Unit) -> Unit
 ) {
     NavHost(
         navController = navController,
@@ -42,7 +44,9 @@ fun AppNavigation(
                         popUpTo(Routes.AUTH) { inclusive = true }
                     }
                 },
-                onBiometricRequested = onBiometricRequested
+                onBiometricRequested = onBiometricRequested,
+                onBiometricResetRequested = onBiometricResetRequested,
+                onDeviceCredentialRequested = onDeviceCredentialRequested
             )
         }
 

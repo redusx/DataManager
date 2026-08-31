@@ -1,9 +1,12 @@
 package com.example.datamanager
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -17,6 +20,31 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : FragmentActivity() {
+
+    private var deviceCredentialSuccessCallback: (() -> Unit)? = null
+    private var deviceCredentialErrorCallback: ((String) -> Unit)? = null
+
+    private val deviceCredentialLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            deviceCredentialSuccessCallback?.invoke()
+        } else {
+            deviceCredentialErrorCallback?.invoke("Telefon kilit şifresi doğrulanmadı.")
+        }
+        deviceCredentialSuccessCallback = null
+        deviceCredentialErrorCallback = null
+    }
+
+    fun launchDeviceCredentialIntent(
+        intent: Intent,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        deviceCredentialSuccessCallback = onSuccess
+        deviceCredentialErrorCallback = onError
+        deviceCredentialLauncher.launch(intent)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +71,22 @@ class MainActivity : FragmentActivity() {
                                 activity = this@MainActivity,
                                 onSuccess = onAuthSuccess,
                                 onError = { /* fallback to PIN */ }
+                            )
+                        },
+                        onBiometricResetRequested = { onResetSuccess, onResetError ->
+                            BiometricHelper.showBiometricResetPrompt(
+                                activity = this@MainActivity,
+                                onSuccess = onResetSuccess,
+                                onError = { onResetError() }
+                            )
+                        },
+                        onDeviceCredentialRequested = { title, subtitle, onSuccess, onError ->
+                            BiometricHelper.showDeviceCredentialPrompt(
+                                activity = this@MainActivity,
+                                title = title,
+                                subtitle = subtitle,
+                                onSuccess = onSuccess,
+                                onError = onError
                             )
                         }
                     )
