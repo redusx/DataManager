@@ -7,6 +7,7 @@ import com.example.datamanager.data.model.Category
 import com.example.datamanager.data.model.DataEntry
 import com.example.datamanager.data.model.FieldItem
 import com.example.datamanager.data.model.FieldType
+import com.example.datamanager.data.model.TemplateType
 import com.example.datamanager.data.model.Templates
 import com.example.datamanager.data.repository.DataRepository
 import com.google.gson.Gson
@@ -20,8 +21,9 @@ import javax.inject.Inject
 
 data class EntryUiState(
     val title: String = "",
-    val category: String = Category.PERSONAL.id,
-    val fields: List<FieldItem> = listOf(FieldItem("", "", FieldType.TEXT)),
+    val category: String = Category.ACCOUNT.id,
+    val templateType: TemplateType = TemplateType.LOGIN,
+    val fields: List<FieldItem> = emptyList(),
     val isFavorite: Boolean = false,
     val isEditing: Boolean = false,
     val editingEntryId: Long? = null,
@@ -32,7 +34,8 @@ data class EntryUiState(
     val categoryEntries: List<DataEntry> = emptyList(),
     // Entry detail
     val viewEntry: DataEntry? = null,
-    val viewFields: List<FieldItem> = emptyList()
+    val viewFields: List<FieldItem> = emptyList(),
+    val viewTemplateType: TemplateType = TemplateType.LOGIN
 )
 
 @HiltViewModel
@@ -64,9 +67,11 @@ class EntryViewModel @Inject constructor(
                 } catch (e: Exception) {
                     emptyList()
                 }
+                val detectedTemplate = TemplateType.detect(entry.category, fields)
                 _uiState.value = _uiState.value.copy(
                     viewEntry = entry,
-                    viewFields = fields
+                    viewFields = fields,
+                    viewTemplateType = detectedTemplate
                 )
             }
         }
@@ -81,9 +86,11 @@ class EntryViewModel @Inject constructor(
                 } catch (e: Exception) {
                     emptyList()
                 }
+                val detectedTemplate = TemplateType.detect(entry.category, fields)
                 _uiState.value = _uiState.value.copy(
                     title = entry.title,
                     category = entry.category,
+                    templateType = detectedTemplate,
                     fields = fields,
                     isFavorite = entry.isFavorite,
                     isEditing = true,
@@ -93,11 +100,28 @@ class EntryViewModel @Inject constructor(
         }
     }
 
-    fun setupForNewEntry(category: String?) {
+    fun setupForNewEntry(category: String?, templateId: String? = null) {
+        val templateType = if (templateId != null) {
+            TemplateType.fromId(templateId)
+        } else if (category != null) {
+            when (category) {
+                Category.ACCOUNT.id -> TemplateType.LOGIN
+                Category.FINANCIAL.id -> TemplateType.CARD
+                Category.PERSONAL.id -> TemplateType.IDENTITY
+                Category.CUSTOM.id -> TemplateType.SECURE_NOTE
+                else -> TemplateType.LOGIN
+            }
+        } else {
+            TemplateType.LOGIN
+        }
+
+        val initialFields = getInitialFieldsForTemplate(templateType)
+
         _uiState.value = _uiState.value.copy(
             title = "",
-            category = category ?: Category.PERSONAL.id,
-            fields = listOf(FieldItem("", "", FieldType.TEXT)),
+            category = templateType.category.id,
+            templateType = templateType,
+            fields = initialFields,
             isFavorite = false,
             isEditing = false,
             editingEntryId = null,
@@ -106,16 +130,57 @@ class EntryViewModel @Inject constructor(
         )
     }
 
-    fun applyTemplate(templateName: String) {
-        val template = Templates.all().firstOrNull { it.name == templateName } ?: return
+    fun onTemplateTypeChanged(newTemplateType: TemplateType) {
+        val currentTitle = _uiState.value.title
+        val initialFields = getInitialFieldsForTemplate(newTemplateType)
         _uiState.value = _uiState.value.copy(
-            category = template.category.id,
-            fields = template.fields
+            category = newTemplateType.category.id,
+            templateType = newTemplateType,
+            fields = initialFields
         )
     }
 
+    private fun getInitialFieldsForTemplate(templateType: TemplateType): List<FieldItem> {
+        return when (templateType) {
+            TemplateType.LOGIN -> listOf(
+                FieldItem("username", "", FieldType.TEXT),
+                FieldItem("password", "", FieldType.PASSWORD, isSensitive = true),
+                FieldItem("website", "", FieldType.TEXT)
+            )
+            TemplateType.CARD -> listOf(
+                FieldItem("card_number", "", FieldType.CARD_NUMBER, isSensitive = true),
+                FieldItem("expiry_date", "", FieldType.DATE),
+                FieldItem("cvv", "", FieldType.NUMBER, isSensitive = true),
+                FieldItem("card_holder", "", FieldType.TEXT)
+            )
+            TemplateType.BANK_ACCOUNT -> listOf(
+                FieldItem("iban", "", FieldType.IBAN, isSensitive = true),
+                FieldItem("account_holder", "", FieldType.TEXT),
+                FieldItem("bank_name", "", FieldType.TEXT)
+            )
+            TemplateType.IDENTITY -> listOf(
+                FieldItem("id_number", "", FieldType.NUMBER, isSensitive = true),
+                FieldItem("full_name", "", FieldType.TEXT),
+                FieldItem("birth_date", "", FieldType.DATE),
+                FieldItem("serial_number", "", FieldType.TEXT)
+            )
+            TemplateType.ADDRESS -> listOf(
+                FieldItem("address", "", FieldType.MULTILINE),
+                FieldItem("city", "", FieldType.TEXT),
+                FieldItem("district", "", FieldType.TEXT),
+                FieldItem("postal_code", "", FieldType.NUMBER)
+            )
+            TemplateType.SECURE_NOTE -> listOf(
+                FieldItem("note_content", "", FieldType.MULTILINE, isSensitive = true)
+            )
+            TemplateType.CUSTOM -> listOf(
+                FieldItem("", "", FieldType.TEXT)
+            )
+        }
+    }
+
     fun onTitleChanged(title: String) {
-        _uiState.value = _uiState.value.copy(title = title)
+        _uiState.value = _uiState.value.copy(title = title, error = null)
     }
 
     fun onCategoryChanged(category: String) {

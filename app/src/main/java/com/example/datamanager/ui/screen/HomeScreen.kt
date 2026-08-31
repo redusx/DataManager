@@ -47,21 +47,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.datamanager.R
+import com.example.datamanager.data.model.TemplateType
 import com.example.datamanager.service.OverlayService
 import com.example.datamanager.ui.component.CategoryChipRow
 import com.example.datamanager.ui.component.EmptyVaultState
 import com.example.datamanager.ui.component.EntryCard
 import com.example.datamanager.ui.component.OverlayLaunchCard
 import com.example.datamanager.ui.component.SearchEmptyState
+import com.example.datamanager.ui.component.TemplateSelectorBottomSheet
 import com.example.datamanager.ui.component.VaultSearchBar
 import com.example.datamanager.ui.theme.Spacing
 import com.example.datamanager.ui.viewmodel.HomeViewModel
@@ -72,7 +77,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     onEntryClick: (Long) -> Unit,
-    onAddClick: (String?) -> Unit,
+    onAddClick: (category: String?, templateId: String?) -> Unit,
     onSettingsClick: () -> Unit,
     onLockClick: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
@@ -82,13 +87,7 @@ fun HomeScreen(
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-
-    // Scroll state for FAB auto-hide
-    val isScrollingDown by remember {
-        derivedStateOf {
-            listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 20
-        }
-    }
+    var showTemplateSheet by remember { mutableStateOf(false) }
 
     val onLaunchFloatingAccess: () -> Unit = {
         val hasPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -109,6 +108,16 @@ fun HomeScreen(
         }
     }
 
+    if (showTemplateSheet) {
+        TemplateSelectorBottomSheet(
+            onDismiss = { showTemplateSheet = false },
+            onSelectTemplate = { selectedType ->
+                showTemplateSheet = false
+                onAddClick(selectedType.category.id, selectedType.id)
+            }
+        )
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -118,11 +127,13 @@ fun HomeScreen(
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Shield,
+                        androidx.compose.foundation.Image(
+                            painter = androidx.compose.ui.res.painterResource(id = com.example.datamanager.R.drawable.app_icon),
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                            modifier = Modifier
+                                .size(28.dp)
+                                .clip(androidx.compose.foundation.shape.RoundedCornerShape(7.dp))
                         )
                         Spacer(modifier = Modifier.width(Spacing.xs))
                         Text(
@@ -168,7 +179,7 @@ fun HomeScreen(
                 exit = scaleOut() + fadeOut()
             ) {
                 FloatingActionButton(
-                    onClick = { onAddClick(uiState.selectedCategory) },
+                    onClick = { showTemplateSheet = true },
                     shape = CircleShape,
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
@@ -224,7 +235,7 @@ fun HomeScreen(
                     // Empty Vault (0 records in DB)
                     uiState.totalCount == 0 && !uiState.isLoading -> {
                         EmptyVaultState(
-                            onAddClick = { onAddClick(null) },
+                            onAddClick = { showTemplateSheet = true },
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -234,7 +245,7 @@ fun HomeScreen(
                         SearchEmptyState(
                             query = uiState.searchQuery,
                             onClearSearch = viewModel::clearSearch,
-                            onAddWithQuery = { onAddClick(uiState.selectedCategory) },
+                            onAddWithQuery = { showTemplateSheet = true },
                             modifier = Modifier.fillMaxSize()
                         )
                     }

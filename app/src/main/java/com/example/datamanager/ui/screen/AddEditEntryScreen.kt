@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,15 +17,10 @@ import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -35,17 +29,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.datamanager.R
-import com.example.datamanager.data.model.Category
-import com.example.datamanager.data.model.Templates
+import com.example.datamanager.data.model.TemplateType
 import com.example.datamanager.ui.component.DynamicFieldEditor
+import com.example.datamanager.ui.component.templates.AddressTemplateEditor
+import com.example.datamanager.ui.component.templates.BankAccountTemplateEditor
+import com.example.datamanager.ui.component.templates.CardTemplateEditor
+import com.example.datamanager.ui.component.templates.IdentityTemplateEditor
+import com.example.datamanager.ui.component.templates.LoginTemplateEditor
+import com.example.datamanager.ui.component.templates.SecureNoteTemplateEditor
 import com.example.datamanager.ui.theme.ShapeTokens
 import com.example.datamanager.ui.theme.Spacing
 import com.example.datamanager.ui.viewmodel.EntryViewModel
@@ -54,20 +50,19 @@ import com.example.datamanager.ui.viewmodel.EntryViewModel
 @Composable
 fun AddEditEntryScreen(
     category: String? = null,
+    templateId: String? = null,
     entryId: Long? = null,
     onBackClick: () -> Unit,
     onSaveSuccess: () -> Unit,
     viewModel: EntryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var showCategoryMenu by remember { mutableStateOf(false) }
-    var showTemplateMenu by remember { mutableStateOf(false) }
 
-    LaunchedEffect(entryId, category) {
+    LaunchedEffect(entryId, category, templateId) {
         if (entryId != null && entryId > 0) {
             viewModel.loadEntryForEditing(entryId)
         } else {
-            viewModel.setupForNewEntry(category)
+            viewModel.setupForNewEntry(category = category, templateId = templateId)
         }
     }
 
@@ -78,6 +73,19 @@ fun AddEditEntryScreen(
     }
 
     val isEditing = entryId != null && entryId > 0
+    val screenTitle = if (isEditing) {
+        "Kaydı Düzenle"
+    } else {
+        when (uiState.templateType) {
+            TemplateType.LOGIN -> "Giriş & Hesap Ekle"
+            TemplateType.CARD -> "Banka & Kredi Kartı Ekle"
+            TemplateType.BANK_ACCOUNT -> "Banka Hesabı & IBAN Ekle"
+            TemplateType.IDENTITY -> "Kimlik Belgesi Ekle"
+            TemplateType.ADDRESS -> "Adres & İletişim Ekle"
+            TemplateType.SECURE_NOTE -> "Güvenli Not Ekle"
+            TemplateType.CUSTOM -> "Özel Kayıt Ekle"
+        }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -85,8 +93,7 @@ fun AddEditEntryScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (isEditing) stringResource(R.string.edit_entry)
-                        else stringResource(R.string.add_entry),
+                        text = screenTitle,
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -103,18 +110,6 @@ fun AddEditEntryScreen(
                         )
                     }
                 },
-                actions = {
-                    IconButton(
-                        onClick = { viewModel.onFavoriteToggled() },
-                        modifier = Modifier.size(Spacing.touchTargetMin)
-                    ) {
-                        Icon(
-                            imageVector = if (uiState.isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                            contentDescription = "Favori",
-                            tint = if (uiState.isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
@@ -128,140 +123,73 @@ fun AddEditEntryScreen(
             contentPadding = PaddingValues(Spacing.m),
             verticalArrangement = Arrangement.spacedBy(Spacing.m)
         ) {
-            // Title Input
+            // Contextual Guided Template Editor
             item {
-                OutlinedTextField(
-                    value = uiState.title,
-                    onValueChange = viewModel::onTitleChanged,
-                    label = { Text(stringResource(R.string.entry_title)) },
-                    singleLine = true,
-                    isError = uiState.error == "title_required",
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = ShapeTokens.InputRadius,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-                    )
-                )
-                if (uiState.error == "title_required") {
-                    Text(
-                        text = stringResource(R.string.title_required),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(start = Spacing.xs, top = Spacing.xxs)
-                    )
-                }
-            }
-
-            // Category selector
-            item {
-                Column {
-                    Text(
-                        text = stringResource(R.string.category),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(Spacing.xxs))
-                    Row {
-                        OutlinedButton(
-                            onClick = { showCategoryMenu = true },
-                            shape = ShapeTokens.ButtonRadius
-                        ) {
-                            val categoryName = when (Category.fromId(uiState.category)) {
-                                Category.PERSONAL -> stringResource(R.string.category_personal)
-                                Category.FINANCIAL -> stringResource(R.string.category_financial)
-                                Category.ACCOUNT -> stringResource(R.string.category_accounts)
-                                Category.CUSTOM -> stringResource(R.string.category_custom)
-                            }
-                            Text(text = categoryName, style = MaterialTheme.typography.labelMedium)
-                        }
-                        DropdownMenu(
-                            expanded = showCategoryMenu,
-                            onDismissRequest = { showCategoryMenu = false }
-                        ) {
-                            Category.entries.forEach { cat ->
-                                val name = when (cat) {
-                                    Category.PERSONAL -> stringResource(R.string.category_personal)
-                                    Category.FINANCIAL -> stringResource(R.string.category_financial)
-                                    Category.ACCOUNT -> stringResource(R.string.category_accounts)
-                                    Category.CUSTOM -> stringResource(R.string.category_custom)
-                                }
-                                DropdownMenuItem(
-                                    text = { Text(name) },
-                                    onClick = {
-                                        viewModel.onCategoryChanged(cat.id)
-                                        showCategoryMenu = false
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Templates (only for new entries)
-            if (!isEditing) {
-                item {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.templates),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                when (uiState.templateType) {
+                    TemplateType.CARD -> {
+                        CardTemplateEditor(
+                            title = uiState.title,
+                            onTitleChange = viewModel::onTitleChanged,
+                            fields = uiState.fields,
+                            onFieldsChange = viewModel::onFieldsChanged,
+                            titleError = uiState.error == "title_required"
                         )
-                        Spacer(modifier = Modifier.height(Spacing.xxs))
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
-                        ) {
-                            OutlinedButton(
-                                onClick = { showTemplateMenu = true },
-                                shape = ShapeTokens.ButtonRadius
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.use_template),
-                                    style = MaterialTheme.typography.labelMedium
-                                )
-                            }
-                            DropdownMenu(
-                                expanded = showTemplateMenu,
-                                onDismissRequest = { showTemplateMenu = false }
-                            ) {
-                                Templates.all().forEach { template ->
-                                    val templateName = when (template.name) {
-                                        "personal_info" -> stringResource(R.string.template_personal)
-                                        "credit_card" -> stringResource(R.string.template_credit_card)
-                                        "bank_account" -> stringResource(R.string.template_bank_account)
-                                        "login_account" -> stringResource(R.string.template_login)
-                                        else -> template.name
-                                    }
-                                    DropdownMenuItem(
-                                        text = { Text(templateName) },
-                                        onClick = {
-                                            viewModel.applyTemplate(template.name)
-                                            showTemplateMenu = false
-                                        }
-                                    )
-                                }
-                            }
-                        }
+                    }
+                    TemplateType.LOGIN -> {
+                        LoginTemplateEditor(
+                            title = uiState.title,
+                            onTitleChange = viewModel::onTitleChanged,
+                            fields = uiState.fields,
+                            onFieldsChange = viewModel::onFieldsChanged,
+                            titleError = uiState.error == "title_required"
+                        )
+                    }
+                    TemplateType.IDENTITY -> {
+                        IdentityTemplateEditor(
+                            title = uiState.title,
+                            onTitleChange = viewModel::onTitleChanged,
+                            fields = uiState.fields,
+                            onFieldsChange = viewModel::onFieldsChanged,
+                            titleError = uiState.error == "title_required"
+                        )
+                    }
+                    TemplateType.ADDRESS -> {
+                        AddressTemplateEditor(
+                            title = uiState.title,
+                            onTitleChange = viewModel::onTitleChanged,
+                            fields = uiState.fields,
+                            onFieldsChange = viewModel::onFieldsChanged,
+                            titleError = uiState.error == "title_required"
+                        )
+                    }
+                    TemplateType.SECURE_NOTE -> {
+                        SecureNoteTemplateEditor(
+                            title = uiState.title,
+                            onTitleChange = viewModel::onTitleChanged,
+                            fields = uiState.fields,
+                            onFieldsChange = viewModel::onFieldsChanged,
+                            titleError = uiState.error == "title_required"
+                        )
+                    }
+                    TemplateType.BANK_ACCOUNT -> {
+                        BankAccountTemplateEditor(
+                            title = uiState.title,
+                            onTitleChange = viewModel::onTitleChanged,
+                            fields = uiState.fields,
+                            onFieldsChange = viewModel::onFieldsChanged,
+                            titleError = uiState.error == "title_required"
+                        )
+                    }
+                    TemplateType.CUSTOM -> {
+                        DynamicFieldEditor(
+                            fields = uiState.fields,
+                            onFieldsChanged = viewModel::onFieldsChanged
+                        )
                     }
                 }
             }
 
-            // Dynamic fields
-            item {
-                Text(
-                    text = stringResource(R.string.fields),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(Spacing.xs))
-                DynamicFieldEditor(
-                    fields = uiState.fields,
-                    onFieldsChanged = viewModel::onFieldsChanged
-                )
-            }
-
-            // Save CTA button
+            // Save CTA Button
             item {
                 Spacer(modifier = Modifier.height(Spacing.xs))
                 Button(

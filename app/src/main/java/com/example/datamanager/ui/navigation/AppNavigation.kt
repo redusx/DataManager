@@ -16,12 +16,13 @@ object Routes {
     const val AUTH = "auth"
     const val HOME = "home"
     const val ENTRY_DETAIL = "entry/{entryId}"
-    const val ADD_ENTRY = "addEntry?category={category}"
+    const val ADD_ENTRY = "addEntry?category={category}&template={template}"
     const val EDIT_ENTRY = "editEntry/{entryId}"
     const val SETTINGS = "settings"
 
     fun entryDetail(entryId: Long) = "entry/$entryId"
-    fun addEntry(category: String? = null) = "addEntry?category=${category ?: ""}"
+    fun addEntry(category: String? = null, template: String? = null) =
+        "addEntry?category=${category ?: ""}&template=${template ?: ""}"
     fun editEntry(entryId: Long) = "editEntry/$entryId"
 }
 
@@ -50,8 +51,8 @@ fun AppNavigation(
                 onEntryClick = { entryId ->
                     navController.navigate(Routes.entryDetail(entryId))
                 },
-                onAddClick = { category ->
-                    navController.navigate(Routes.addEntry(category))
+                onAddClick = { category, templateId ->
+                    navController.navigate(Routes.addEntry(category, templateId))
                 },
                 onSettingsClick = {
                     navController.navigate(Routes.SETTINGS)
@@ -80,14 +81,22 @@ fun AppNavigation(
 
         composable(
             route = Routes.ADD_ENTRY,
-            arguments = listOf(navArgument("category") {
-                type = NavType.StringType
-                defaultValue = ""
-            })
+            arguments = listOf(
+                navArgument("category") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument("template") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
+            )
         ) { backStackEntry ->
             val category = backStackEntry.arguments?.getString("category")?.takeIf { it.isNotEmpty() }
+            val templateId = backStackEntry.arguments?.getString("template")?.takeIf { it.isNotEmpty() }
             AddEditEntryScreen(
                 category = category,
+                templateId = templateId,
                 entryId = null,
                 onBackClick = { navController.popBackStack() },
                 onSaveSuccess = { navController.popBackStack() }
@@ -101,6 +110,7 @@ fun AppNavigation(
             val entryId = backStackEntry.arguments?.getLong("entryId") ?: 0L
             AddEditEntryScreen(
                 category = null,
+                templateId = null,
                 entryId = entryId,
                 onBackClick = { navController.popBackStack() },
                 onSaveSuccess = {

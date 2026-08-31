@@ -8,7 +8,8 @@ enum class FieldType {
     DATE,
     NUMBER,
     CARD_NUMBER,
-    IBAN
+    IBAN,
+    MULTILINE
 }
 
 data class FieldItem(
@@ -19,9 +20,9 @@ data class FieldItem(
 )
 
 enum class Category(val id: String) {
-    PERSONAL("personal"),
-    FINANCIAL("financial"),
     ACCOUNT("account"),
+    FINANCIAL("financial"),
+    PERSONAL("personal"),
     CUSTOM("custom");
 
     companion object {
@@ -29,6 +30,101 @@ enum class Category(val id: String) {
             return entries.firstOrNull { it.id == id } ?: CUSTOM
         }
     }
+}
+
+enum class TemplateType(
+    val id: String,
+    val title: String,
+    val description: String,
+    val category: Category
+) {
+    LOGIN(
+        id = "login",
+        title = "Giriş & Hesap",
+        description = "Web sitesi, uygulama hesapları ve şifreler",
+        category = Category.ACCOUNT
+    ),
+    CARD(
+        id = "card",
+        title = "Banka & Kredi Kartı",
+        description = "Kredi kartları ve banka kartı bilgileri",
+        category = Category.FINANCIAL
+    ),
+    BANK_ACCOUNT(
+        id = "bank_account",
+        title = "Banka Hesabı & IBAN",
+        description = "Hesap numaraları ve IBAN kayıtları",
+        category = Category.FINANCIAL
+    ),
+    IDENTITY(
+        id = "identity",
+        title = "Kimlik Belgesi",
+        description = "T.C. Kimlik, Pasaport, Ehliyet",
+        category = Category.PERSONAL
+    ),
+    ADDRESS(
+        id = "address",
+        title = "Adres & İletişim",
+        description = "Ev, iş adresi ve teslimat bilgileri",
+        category = Category.PERSONAL
+    ),
+    SECURE_NOTE(
+        id = "secure_note",
+        title = "Güvenli Not",
+        description = "Kurtarma kodları, Wi-Fi ve özel notlar",
+        category = Category.CUSTOM
+    ),
+    CUSTOM(
+        id = "custom",
+        title = "Özel Şablon",
+        description = "Serbest alan tanımlı özel kayıt",
+        category = Category.CUSTOM
+    );
+
+    companion object {
+        fun fromId(id: String?): TemplateType {
+            return entries.firstOrNull { it.id == id } ?: LOGIN
+        }
+
+        fun detect(category: String, fields: List<FieldItem>): TemplateType {
+            val keys = fields.map { it.key.lowercase() }
+            return when {
+                keys.contains("card_number") || keys.contains("cvv") -> CARD
+                keys.contains("iban") && !keys.contains("card_number") -> BANK_ACCOUNT
+                keys.contains("password") || keys.contains("website") || keys.contains("username") -> LOGIN
+                keys.contains("id_number") || keys.contains("tc_no") || keys.contains("serial_number") -> IDENTITY
+                keys.contains("address") || keys.contains("city") || keys.contains("district") -> ADDRESS
+                keys.contains("note_content") || category == Category.CUSTOM.id -> SECURE_NOTE
+                category == Category.ACCOUNT.id -> LOGIN
+                category == Category.FINANCIAL.id -> CARD
+                category == Category.PERSONAL.id -> IDENTITY
+                else -> CUSTOM
+            }
+        }
+    }
+}
+
+data class ServicePreset(
+    val name: String,
+    val domain: String,
+    val defaultUsernameHint: String = ""
+)
+
+object PopularServices {
+    val all = listOf(
+        ServicePreset("Google", "accounts.google.com", "ornek@gmail.com"),
+        ServicePreset("Apple ID", "appleid.apple.com", "ornek@icloud.com"),
+        ServicePreset("Microsoft", "login.live.com", "ornek@outlook.com"),
+        ServicePreset("GitHub", "github.com", "kullaniciadi"),
+        ServicePreset("Instagram", "instagram.com", "kullaniciadi"),
+        ServicePreset("Twitter / X", "x.com", "kullaniciadi"),
+        ServicePreset("Netflix", "netflix.com", "ornek@gmail.com"),
+        ServicePreset("Spotify", "spotify.com", "ornek@gmail.com"),
+        ServicePreset("Amazon", "amazon.com.tr", "ornek@gmail.com"),
+        ServicePreset("LinkedIn", "linkedin.com", "ornek@email.com"),
+        ServicePreset("Discord", "discord.com", "ornek@email.com"),
+        ServicePreset("Steam", "store.steampowered.com", "hesap_adi")
+    )
 }
 
 data class EntryTemplate(
@@ -46,7 +142,7 @@ object Templates {
             FieldItem("card_number", "", FieldType.CARD_NUMBER, isSensitive = true),
             FieldItem("expiry_date", "", FieldType.DATE),
             FieldItem("cvv", "", FieldType.NUMBER, isSensitive = true),
-            FieldItem("iban", "", FieldType.IBAN)
+            FieldItem("bank_name", "", FieldType.TEXT)
         )
     )
 
@@ -56,8 +152,8 @@ object Templates {
         fields = listOf(
             FieldItem("bank_name", "", FieldType.TEXT),
             FieldItem("account_holder", "", FieldType.TEXT),
-            FieldItem("iban", "", FieldType.IBAN),
-            FieldItem("account_number", "", FieldType.NUMBER, isSensitive = true)
+            FieldItem("iban", "", FieldType.IBAN, isSensitive = true),
+            FieldItem("account_number", "", FieldType.NUMBER)
         )
     )
 
@@ -67,25 +163,39 @@ object Templates {
         fields = listOf(
             FieldItem("website", "", FieldType.TEXT),
             FieldItem("username", "", FieldType.TEXT),
-            FieldItem("email", "", FieldType.EMAIL),
             FieldItem("password", "", FieldType.PASSWORD, isSensitive = true)
         )
     )
 
-    val personalInfo = EntryTemplate(
-        name = "personal_info",
+    val identityDoc = EntryTemplate(
+        name = "identity",
         category = Category.PERSONAL,
         fields = listOf(
-            FieldItem("first_name", "", FieldType.TEXT),
-            FieldItem("last_name", "", FieldType.TEXT),
-            FieldItem("birth_date", "", FieldType.DATE),
             FieldItem("id_number", "", FieldType.NUMBER, isSensitive = true),
-            FieldItem("phone", "", FieldType.PHONE),
-            FieldItem("email", "", FieldType.EMAIL),
-            FieldItem("address", "", FieldType.TEXT),
+            FieldItem("full_name", "", FieldType.TEXT),
+            FieldItem("birth_date", "", FieldType.DATE),
+            FieldItem("serial_number", "", FieldType.TEXT)
+        )
+    )
+
+    val address = EntryTemplate(
+        name = "address",
+        category = Category.PERSONAL,
+        fields = listOf(
+            FieldItem("address", "", FieldType.MULTILINE),
+            FieldItem("city", "", FieldType.TEXT),
+            FieldItem("district", "", FieldType.TEXT),
             FieldItem("postal_code", "", FieldType.NUMBER)
         )
     )
 
-    fun all(): List<EntryTemplate> = listOf(personalInfo, creditCard, bankAccount, loginAccount)
+    val secureNote = EntryTemplate(
+        name = "secure_note",
+        category = Category.CUSTOM,
+        fields = listOf(
+            FieldItem("note_content", "", FieldType.MULTILINE, isSensitive = true)
+        )
+    )
+
+    fun all(): List<EntryTemplate> = listOf(loginAccount, creditCard, bankAccount, identityDoc, address, secureNote)
 }

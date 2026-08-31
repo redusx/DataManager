@@ -221,23 +221,26 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
         if (bubbleView != null) return
 
         val density = resources.displayMetrics.density
-        val bubbleSize = (52 * density).toInt() // 52dp compact floating button
-        val iconPadding = (15 * density).toInt() // Smaller, refined shield icon (~22dp)
+        val bubbleSize = (54 * density).toInt() // 54dp floating button
+        val cornerRadiusPx = 16 * density
 
-        val backgroundDrawable = android.graphics.drawable.GradientDrawable().apply {
+        val borderForeground = android.graphics.drawable.GradientDrawable().apply {
             shape = android.graphics.drawable.GradientDrawable.RECTANGLE
-            cornerRadius = 16 * density // Smooth oval/squircle corners
-            setColor(0xFF1E222A.toInt()) // Tonal dark surface container
-            setStroke((1.5f * density).toInt(), 0x66ADC6FF.toInt()) // Subtle sapphire border
+            cornerRadius = cornerRadiusPx
+            setStroke((1.5f * density).toInt(), 0x80ADC6FF.toInt()) // Sapphire outline
         }
 
         val imageView = android.widget.ImageView(this).apply {
-            setImageResource(R.drawable.ic_shield)
-            setPadding(iconPadding, iconPadding, iconPadding, iconPadding)
-            background = backgroundDrawable
-            elevation = 16f
+            setImageResource(R.drawable.app_icon)
+            scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+            outlineProvider = object : android.view.ViewOutlineProvider() {
+                override fun getOutline(view: android.view.View, outline: android.graphics.Outline) {
+                    outline.setRoundRect(0, 0, view.width, view.height, cornerRadiusPx)
+                }
+            }
             clipToOutline = true
-            scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+            elevation = 16f
+            foreground = borderForeground
         }
 
         val posX = getSavedBubbleX(density)
@@ -387,6 +390,13 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
                                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
                             }
                             startActivity(launchIntent)
+                        },
+                        onCloseOverlay = {
+                            getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE)
+                                .edit()
+                                .putBoolean(KEY_OVERLAY_ENABLED, false)
+                                .apply()
+                            stopSelf()
                         }
                     )
                 }

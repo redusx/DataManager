@@ -1,6 +1,7 @@
 package com.example.datamanager.ui.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Delete
@@ -33,7 +33,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -53,8 +52,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.datamanager.R
 import com.example.datamanager.data.model.Category
+import com.example.datamanager.data.model.FieldItem
+import com.example.datamanager.data.model.TemplateType
+import com.example.datamanager.ui.component.CopyButton
 import com.example.datamanager.ui.component.SensitiveField
 import com.example.datamanager.ui.component.getCategoryVisuals
+import com.example.datamanager.ui.component.templates.PhysicalCardPreview
 import com.example.datamanager.ui.theme.ShapeTokens
 import com.example.datamanager.ui.theme.Spacing
 import com.example.datamanager.ui.viewmodel.EntryViewModel
@@ -82,6 +85,9 @@ fun EntryDetailScreen(
 
     val entry = uiState.viewEntry
     val fields = uiState.viewFields
+    val templateType = uiState.viewTemplateType
+
+    fun getFieldValue(key: String): String = fields.firstOrNull { it.key == key }?.value ?: ""
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -109,19 +115,6 @@ fun EntryDetailScreen(
                 },
                 actions = {
                     if (entry != null) {
-                        IconButton(
-                            onClick = {
-                                viewModel.toggleFavorite(entry)
-                                viewModel.loadEntryForViewing(entryId)
-                            },
-                            modifier = Modifier.size(Spacing.touchTargetMin)
-                        ) {
-                            Icon(
-                                imageVector = if (entry.isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                                contentDescription = "Favori",
-                                tint = if (entry.isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
                         IconButton(
                             onClick = { onEditClick(entryId) },
                             modifier = Modifier.size(Spacing.touchTargetMin)
@@ -159,13 +152,12 @@ fun EntryDetailScreen(
                     .fillMaxSize()
                     .padding(paddingValues),
                 contentPadding = PaddingValues(Spacing.m),
-                verticalArrangement = Arrangement.spacedBy(Spacing.s)
+                verticalArrangement = Arrangement.spacedBy(Spacing.m)
             ) {
-                // Category badge & Title header container
+                // Category badge & Template type header
                 item {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(bottom = Spacing.xs)
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
@@ -184,41 +176,67 @@ fun EntryDetailScreen(
 
                         Spacer(modifier = Modifier.width(Spacing.xs))
 
-                        val categoryName = when (category) {
-                            Category.PERSONAL -> stringResource(R.string.category_personal)
-                            Category.FINANCIAL -> stringResource(R.string.category_financial)
-                            Category.ACCOUNT -> stringResource(R.string.category_accounts)
-                            Category.CUSTOM -> stringResource(R.string.category_custom)
-                        }
-
                         Text(
-                            text = categoryName,
+                            text = templateType.title,
                             style = MaterialTheme.typography.labelMedium,
                             color = categoryTint
                         )
                     }
                 }
 
-                // Field rows with Monospace & 30s auto-remask
-                items(fields) { field ->
-                    if (field.value.isNotEmpty()) {
-                        val readableLabel = formatFieldLabel(field.key)
-                        SensitiveField(
-                            label = readableLabel,
-                            value = field.value,
-                            isSensitive = field.isSensitive,
-                            onCopy = { secret ->
-                                ClipboardHelper.copyToClipboard(
-                                    context = context,
-                                    label = readableLabel,
-                                    text = secret,
-                                    isSensitive = field.isSensitive
-                                )
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("$readableLabel kopyalandı")
-                                }
-                            }
+                // If Payment Card: Show Interactive Physical Card Preview
+                if (templateType == TemplateType.CARD) {
+                    item {
+                        val cardNumber = getFieldValue("card_number")
+                        val expiryDate = getFieldValue("expiry_date")
+                        val cvv = getFieldValue("cvv")
+                        val cardHolder = getFieldValue("card_holder")
+                        val cardBrand = when {
+                            cardNumber.startsWith("4") -> "VISA"
+                            cardNumber.startsWith("5") || cardNumber.startsWith("2") -> "MASTERCARD"
+                            cardNumber.startsWith("9792") -> "TROY"
+                            cardNumber.startsWith("34") || cardNumber.startsWith("37") -> "AMEX"
+                            else -> "KART"
+                        }
+
+                        PhysicalCardPreview(
+                            title = entry.title,
+                            cardNumber = cardNumber,
+                            expiryDate = expiryDate,
+                            cvv = cvv,
+                            cardHolder = cardHolder,
+                            cardBrand = cardBrand
                         )
+                    }
+                }
+
+                // Field Rows with Monospace & 30s auto-remask
+                item {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(Spacing.s),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        fields.forEach { field ->
+                            if (field.value.isNotEmpty()) {
+                                val readableLabel = formatFieldLabel(field.key)
+                                SensitiveField(
+                                    label = readableLabel,
+                                    value = field.value,
+                                    isSensitive = field.isSensitive,
+                                    onCopy = { secret ->
+                                        ClipboardHelper.copyToClipboard(
+                                            context = context,
+                                            label = readableLabel,
+                                            text = secret,
+                                            isSensitive = field.isSensitive
+                                        )
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar("$readableLabel kopyalandı")
+                                        }
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
