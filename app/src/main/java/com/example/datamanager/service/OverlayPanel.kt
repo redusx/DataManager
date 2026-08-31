@@ -2,15 +2,18 @@ package com.example.datamanager.service
 
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,8 +32,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.Launch
 import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.CreditCard
 import androidx.compose.material.icons.rounded.Description
@@ -68,6 +73,7 @@ import com.example.datamanager.R
 import com.example.datamanager.data.model.Category
 import com.example.datamanager.data.model.DataEntry
 import com.example.datamanager.data.model.FieldItem
+import com.example.datamanager.data.model.TemplateType
 import com.example.datamanager.ui.component.CopyButton
 import com.example.datamanager.ui.theme.CategoryCardsTint
 import com.example.datamanager.ui.theme.CategoryIdentityTint
@@ -83,16 +89,6 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-data class FlatField(
-    val entryId: Long,
-    val entryTitle: String,
-    val category: String,
-    val label: String,
-    val value: String,
-    val isSensitive: Boolean,
-    val isFavorite: Boolean
-)
-
 @Composable
 fun OverlayPanel(
     entries: List<DataEntry>,
@@ -106,46 +102,27 @@ fun OverlayPanel(
     val gson = remember { Gson() }
     val fieldListType = remember { object : TypeToken<List<FieldItem>>() {}.type }
 
+    var selectedEntry by remember { mutableStateOf<DataEntry?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
-    // Flatten all entries into copyable fields
-    val allFields = remember(entries) {
-        val list = mutableListOf<FlatField>()
-        for (entry in entries) {
-            try {
-                val fields: List<FieldItem> = gson.fromJson(entry.fieldsJson, fieldListType)
-                for (field in fields) {
-                    if (field.key.isNotBlank() && field.value.isNotBlank()) {
-                        list.add(
-                            FlatField(
-                                entryId = entry.id,
-                                entryTitle = entry.title,
-                                category = entry.category,
-                                label = field.key,
-                                value = field.value,
-                                isSensitive = field.isSensitive,
-                                isFavorite = entry.isFavorite
-                            )
-                        )
-                    }
+    // Filter entries based on search and selected category
+    val filteredEntries = remember(entries, searchQuery, selectedCategory) {
+        entries.filter { entry ->
+            val matchesCategory = selectedCategory == null || entry.category == selectedCategory
+            val matchesQuery = if (searchQuery.isBlank()) {
+                true
+            } else {
+                val inTitle = entry.title.contains(searchQuery, ignoreCase = true)
+                val inFields = try {
+                    val fields: List<FieldItem> = gson.fromJson(entry.fieldsJson, fieldListType)
+                    fields.any { it.key.contains(searchQuery, ignoreCase = true) || it.value.contains(searchQuery, ignoreCase = true) }
+                } catch (e: Exception) {
+                    false
                 }
-            } catch (e: Exception) {
-                // Ignore parse errors
+                inTitle || inFields
             }
-        }
-        list
-    }
-
-    // Filter fields based on category and search query
-    val filteredFields = remember(allFields, searchQuery, selectedCategory) {
-        allFields.filter { item ->
-            val matchesCategory = selectedCategory == null || item.category == selectedCategory
-            val matchesQuery = searchQuery.isBlank() ||
-                    item.entryTitle.contains(searchQuery, ignoreCase = true) ||
-                    item.label.contains(searchQuery, ignoreCase = true) ||
-                    item.value.contains(searchQuery, ignoreCase = true)
             matchesCategory && matchesQuery
         }
     }
@@ -163,7 +140,7 @@ fun OverlayPanel(
                 .fillMaxWidth()
                 .padding(Spacing.m)
         ) {
-            // Header bar
+            // Main Top Header bar (App Logo, Name, and Window Controls)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -182,7 +159,8 @@ fun OverlayPanel(
                     Text(
                         text = "MyVault",
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
 
@@ -229,158 +207,431 @@ fun OverlayPanel(
                 }
             }
 
-            Spacer(modifier = Modifier.height(Spacing.s))
+            Spacer(modifier = Modifier.height(Spacing.xs))
 
-            // Search input
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(ShapeTokens.InputRadius)
-                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                        shape = ShapeTokens.InputRadius
-                    )
-                    .padding(horizontal = Spacing.s, vertical = Spacing.xs),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Search,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(Spacing.xs))
-                BasicTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    singleLine = true,
-                    textStyle = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    decorationBox = { innerTextField ->
-                        if (searchQuery.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.search_placeholder),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                            )
-                        }
-                        innerTextField()
-                    },
-                    modifier = Modifier.weight(1f)
-                )
-                if (searchQuery.isNotEmpty()) {
-                    IconButton(
-                        onClick = { searchQuery = "" },
-                        modifier = Modifier.size(20.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Close,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(14.dp)
-                        )
+            AnimatedContent(
+                targetState = selectedEntry,
+                transitionSpec = {
+                    if (targetState != null) {
+                        (slideInHorizontally { width -> width } + fadeIn()).togetherWith(
+                            slideOutHorizontally { width -> -width } + fadeOut())
+                    } else {
+                        (slideInHorizontally { width -> -width } + fadeIn()).togetherWith(
+                            slideOutHorizontally { width -> width } + fadeOut())
                     }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(Spacing.xs))
-
-            // Category filter chips
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(Spacing.xxs),
-                contentPadding = PaddingValues(vertical = 2.dp)
-            ) {
-                item {
-                    CompactChip(
-                        label = stringResource(R.string.all),
-                        isSelected = selectedCategory == null,
-                        onClick = { selectedCategory = null }
-                    )
-                }
-                item {
-                    CompactChip(
-                        label = stringResource(R.string.category_accounts),
-                        isSelected = selectedCategory == Category.ACCOUNT.id,
-                        onClick = { selectedCategory = Category.ACCOUNT.id }
-                    )
-                }
-                item {
-                    CompactChip(
-                        label = stringResource(R.string.category_financial),
-                        isSelected = selectedCategory == Category.FINANCIAL.id,
-                        onClick = { selectedCategory = Category.FINANCIAL.id }
-                    )
-                }
-                item {
-                    CompactChip(
-                        label = stringResource(R.string.category_personal),
-                        isSelected = selectedCategory == Category.PERSONAL.id,
-                        onClick = { selectedCategory = Category.PERSONAL.id }
-                    )
-                }
-                item {
-                    CompactChip(
-                        label = stringResource(R.string.category_custom),
-                        isSelected = selectedCategory == Category.CUSTOM.id,
-                        onClick = { selectedCategory = Category.CUSTOM.id }
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(Spacing.xs))
-
-            // Field List
-            if (filteredFields.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(140.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = stringResource(R.string.no_entries),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(260.dp),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.xs)
-                ) {
-                    items(filteredFields, key = { "${it.entryId}_${it.label}" }) { item ->
-                        OverlayFieldCard(
-                            item = item,
-                            onCopy = {
-                                val readableLabel = formatFieldLabel(item.label)
-                                ClipboardHelper.copyToClipboard(
-                                    context = context,
-                                    label = readableLabel,
-                                    text = item.value,
-                                    isSensitive = item.isSensitive
+                },
+                label = "overlay_navigation"
+            ) { currentEntry ->
+                if (currentEntry == null) {
+                    // Level 1: Entry List (Grouped by Category & Filterable)
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        // Search bar
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(ShapeTokens.InputRadius)
+                                .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.outlineVariant,
+                                    shape = ShapeTokens.InputRadius
                                 )
-
-                                Toast.makeText(
-                                    context,
-                                    context.getString(R.string.copied_item, readableLabel),
-                                    Toast.LENGTH_SHORT
-                                ).show()
-
-                                scope.launch {
-                                    delay(150)
-                                    onCopiedAndMinimize()
+                                .padding(horizontal = Spacing.s, vertical = Spacing.xs),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Search,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(Spacing.xs))
+                            BasicTextField(
+                                value = searchQuery,
+                                onValueChange = { searchQuery = it },
+                                singleLine = true,
+                                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                                    color = MaterialTheme.colorScheme.onSurface
+                                ),
+                                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                                decorationBox = { innerTextField ->
+                                    if (searchQuery.isEmpty()) {
+                                        Text(
+                                            text = stringResource(R.string.search_placeholder),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                        )
+                                    }
+                                    innerTextField()
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(
+                                    onClick = { searchQuery = "" },
+                                    modifier = Modifier.size(20.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Close,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(14.dp)
+                                    )
                                 }
                             }
-                        )
+                        }
+
+                        Spacer(modifier = Modifier.height(Spacing.xs))
+
+                        // Category filter chips
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.xxs),
+                            contentPadding = PaddingValues(vertical = 2.dp)
+                        ) {
+                            item {
+                                CompactChip(
+                                    label = stringResource(R.string.all),
+                                    isSelected = selectedCategory == null,
+                                    onClick = { selectedCategory = null }
+                                )
+                            }
+                            item {
+                                CompactChip(
+                                    label = stringResource(R.string.category_accounts),
+                                    isSelected = selectedCategory == Category.ACCOUNT.id,
+                                    onClick = { selectedCategory = Category.ACCOUNT.id }
+                                )
+                            }
+                            item {
+                                CompactChip(
+                                    label = stringResource(R.string.category_financial),
+                                    isSelected = selectedCategory == Category.FINANCIAL.id,
+                                    onClick = { selectedCategory = Category.FINANCIAL.id }
+                                )
+                            }
+                            item {
+                                CompactChip(
+                                    label = stringResource(R.string.category_personal),
+                                    isSelected = selectedCategory == Category.PERSONAL.id,
+                                    onClick = { selectedCategory = Category.PERSONAL.id }
+                                )
+                            }
+                            item {
+                                CompactChip(
+                                    label = stringResource(R.string.category_custom),
+                                    isSelected = selectedCategory == Category.CUSTOM.id,
+                                    onClick = { selectedCategory = Category.CUSTOM.id }
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(Spacing.xs))
+
+                        // Entry Cards List
+                        if (filteredEntries.isEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(240.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.no_entries),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(240.dp),
+                                verticalArrangement = Arrangement.spacedBy(Spacing.xs)
+                            ) {
+                                items(filteredEntries, key = { it.id }) { entry ->
+                                    OverlayEntryCard(
+                                        entry = entry,
+                                        gson = gson,
+                                        fieldListType = fieldListType,
+                                        onClick = { selectedEntry = entry }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // Level 2: Selected Entry's Detail & Copyable Fields View
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        // Sub-header with Back button (Replaces Category Chips)
+                        val category = Category.fromId(currentEntry.category)
+                        val (categoryIcon, categoryTint) = when (category) {
+                            Category.ACCOUNT -> Icons.Rounded.Lock to CategoryLoginsTint
+                            Category.FINANCIAL -> Icons.Rounded.CreditCard to CategoryCardsTint
+                            Category.PERSONAL -> Icons.Rounded.AccountCircle to CategoryIdentityTint
+                            Category.CUSTOM -> Icons.Rounded.Description to CategoryNotesTint
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(ShapeTokens.CardRadius)
+                                .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                                .padding(horizontal = Spacing.xs, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            IconButton(
+                                onClick = { selectedEntry = null },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                    contentDescription = "Geri",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .size(26.dp)
+                                    .clip(ShapeTokens.BadgeRadius)
+                                    .background(categoryTint.copy(alpha = 0.15f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = categoryIcon,
+                                    contentDescription = null,
+                                    tint = categoryTint,
+                                    modifier = Modifier.size(15.dp)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(Spacing.xs))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = currentEntry.title,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(Spacing.xs))
+
+                        // Parse fields of selected entry
+                        val fields: List<FieldItem> = remember(currentEntry) {
+                            try {
+                                gson.fromJson<List<FieldItem>>(currentEntry.fieldsJson, fieldListType) ?: emptyList()
+                            } catch (e: Exception) {
+                                emptyList()
+                            }
+                        }
+
+                        if (fields.isEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(240.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Bu kayıtta alan bulunamadı.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(240.dp),
+                                verticalArrangement = Arrangement.spacedBy(Spacing.xs)
+                            ) {
+                                items(fields) { field ->
+                                    if (field.key.isNotBlank() && field.value.isNotBlank()) {
+                                        OverlayEntryFieldRow(
+                                            field = field,
+                                            entryTitle = currentEntry.title,
+                                            onCopy = {
+                                                val readableLabel = formatFieldLabel(field.key)
+                                                ClipboardHelper.copyToClipboard(
+                                                    context = context,
+                                                    label = readableLabel,
+                                                    text = field.value,
+                                                    isSensitive = field.isSensitive
+                                                )
+
+                                                Toast.makeText(
+                                                    context,
+                                                    context.getString(R.string.copied_item, readableLabel),
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+
+                                                scope.launch {
+                                                    delay(150)
+                                                    onCopiedAndMinimize()
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun OverlayEntryCard(
+    entry: DataEntry,
+    gson: Gson,
+    fieldListType: java.lang.reflect.Type,
+    onClick: () -> Unit
+) {
+    val category = Category.fromId(entry.category)
+    val (categoryIcon, categoryTint) = when (category) {
+        Category.ACCOUNT -> Icons.Rounded.Lock to CategoryLoginsTint
+        Category.FINANCIAL -> Icons.Rounded.CreditCard to CategoryCardsTint
+        Category.PERSONAL -> Icons.Rounded.AccountCircle to CategoryIdentityTint
+        Category.CUSTOM -> Icons.Rounded.Description to CategoryNotesTint
+    }
+
+    val summary = remember(entry) {
+        getEntrySummary(entry, gson, fieldListType)
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(ShapeTokens.CardRadius)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant,
+                shape = ShapeTokens.CardRadius
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = Spacing.s, vertical = Spacing.s)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(ShapeTokens.BadgeRadius)
+                    .background(categoryTint.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = categoryIcon,
+                    contentDescription = null,
+                    tint = categoryTint,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(Spacing.s))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = entry.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (summary.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(1.dp))
+                    Text(
+                        text = summary,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            Icon(
+                imageVector = Icons.Rounded.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun OverlayEntryFieldRow(
+    field: FieldItem,
+    entryTitle: String,
+    onCopy: () -> Unit
+) {
+    var isRevealed by remember { mutableStateOf(!field.isSensitive) }
+    val readableLabel = formatFieldLabel(field.key)
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(ShapeTokens.CardRadius)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant,
+                shape = ShapeTokens.CardRadius
+            )
+            .padding(horizontal = Spacing.s, vertical = Spacing.xs)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = readableLabel,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = if (field.isSensitive && !isRevealed) "••••••••••••" else field.value,
+                    style = if (field.isSensitive && !isRevealed) MonospaceSecretStyle.copy(fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
+                    else MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            if (field.isSensitive) {
+                IconButton(
+                    onClick = { isRevealed = !isRevealed },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isRevealed) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+
+            CopyButton(
+                onClick = onCopy,
+                contentDescription = "$entryTitle $readableLabel kopyala"
+            )
         }
     }
 }
@@ -418,89 +669,40 @@ private fun CompactChip(
     }
 }
 
-@Composable
-private fun OverlayFieldCard(
-    item: FlatField,
-    onCopy: () -> Unit
-) {
-    var isRevealed by remember { mutableStateOf(!item.isSensitive) }
-
-    val category = Category.fromId(item.category)
-    val (categoryIcon, categoryTint) = when (category) {
-        Category.ACCOUNT -> Icons.Rounded.Lock to CategoryLoginsTint
-        Category.FINANCIAL -> Icons.Rounded.CreditCard to CategoryCardsTint
-        Category.PERSONAL -> Icons.Rounded.AccountCircle to CategoryIdentityTint
-        Category.CUSTOM -> Icons.Rounded.Description to CategoryNotesTint
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(ShapeTokens.CardRadius)
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outlineVariant,
-                shape = ShapeTokens.CardRadius
-            )
-            .padding(horizontal = Spacing.s, vertical = Spacing.xs)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(28.dp)
-                    .clip(ShapeTokens.BadgeRadius)
-                    .background(categoryTint.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = categoryIcon,
-                    contentDescription = null,
-                    tint = categoryTint,
-                    modifier = Modifier.size(16.dp)
-                )
+private fun getEntrySummary(entry: DataEntry, gson: Gson, type: java.lang.reflect.Type): String {
+    return try {
+        val fields: List<FieldItem> = gson.fromJson(entry.fieldsJson, type) ?: emptyList()
+        val template = TemplateType.detect(entry.category, fields)
+        val fieldMap = fields.associate { it.key.lowercase() to it.value }
+        when (template) {
+            TemplateType.LOGIN -> fieldMap["username"] ?: fieldMap["website"] ?: "${fields.size} alan"
+            TemplateType.CARD -> {
+                val num = fieldMap["card_number"] ?: ""
+                val bank = fieldMap["bank_name"] ?: ""
+                if (num.length >= 4) "$bank •••• ${num.takeLast(4)}" else bank.ifEmpty { "${fields.size} alan" }
             }
-
-            Spacer(modifier = Modifier.width(Spacing.xs))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.entryTitle,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = "${formatFieldLabel(item.label)}: " + if (item.isSensitive && !isRevealed) "••••••••••••" else item.value,
-                    style = if (item.isSensitive && !isRevealed) MonospaceSecretStyle.copy(fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    else MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+            TemplateType.BANK_ACCOUNT -> {
+                val iban = fieldMap["iban"] ?: ""
+                val bank = fieldMap["bank_name"] ?: ""
+                if (iban.length >= 4) "$bank •••• ${iban.takeLast(4)}" else bank.ifEmpty { "${fields.size} alan" }
             }
-
-            if (item.isSensitive) {
-                IconButton(
-                    onClick = { isRevealed = !isRevealed },
-                    modifier = Modifier.size(Spacing.touchTargetMin)
-                ) {
-                    Icon(
-                        imageVector = if (isRevealed) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
+            TemplateType.IDENTITY -> {
+                val id = fieldMap["id_number"] ?: fieldMap["tc_no"] ?: ""
+                val name = fieldMap["full_name"] ?: ""
+                if (id.length >= 4) "$name •••${id.takeLast(4)}" else name.ifEmpty { "${fields.size} alan" }
             }
-
-            CopyButton(
-                onClick = onCopy,
-                contentDescription = "${item.entryTitle} ${item.label} kopyala"
-            )
+            TemplateType.ADDRESS -> {
+                val city = fieldMap["city"] ?: ""
+                val dist = fieldMap["district"] ?: ""
+                if (dist.isNotEmpty() && city.isNotEmpty()) "$dist, $city" else (city.ifEmpty { dist }).ifEmpty { "${fields.size} alan" }
+            }
+            TemplateType.SECURE_NOTE -> {
+                val note = fieldMap["note_content"] ?: ""
+                note.lineSequence().firstOrNull()?.take(30) ?: "${fields.size} alan"
+            }
+            TemplateType.CUSTOM -> "${fields.size} alan"
         }
+    } catch (e: Exception) {
+        "Kayıt detayları"
     }
 }
