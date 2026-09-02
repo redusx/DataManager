@@ -113,7 +113,10 @@ fun BankAccountTemplateEditor(
         // Account Holder Name
         OutlinedTextField(
             value = accountHolder,
-            onValueChange = { updateField("account_holder", it.uppercase(), FieldType.TEXT) },
+            onValueChange = {
+                val loc = if (java.util.Locale.getDefault().language == "tr") java.util.Locale("tr", "TR") else java.util.Locale.getDefault()
+                updateField("account_holder", it.uppercase(loc), FieldType.TEXT)
+            },
             label = { Text("Hesap Sahibi") },
             placeholder = { Text("AHMET YILMAZ") },
             singleLine = true,

@@ -223,7 +223,10 @@ fun IdentityTemplateEditor(
 
             OutlinedTextField(
                 value = serialNumber,
-                onValueChange = { updateField("serial_number", it.uppercase(), FieldType.TEXT, isSensitive = true) },
+                onValueChange = {
+                    val loc = if (java.util.Locale.getDefault().language == "tr") java.util.Locale("tr", "TR") else java.util.Locale.getDefault()
+                    updateField("serial_number", it.uppercase(loc), FieldType.TEXT, isSensitive = true)
+                },
                 label = { Text(stringResource(R.string.serial_number_label)) },
                 placeholder = { Text("A12B34567") },
                 singleLine = true,

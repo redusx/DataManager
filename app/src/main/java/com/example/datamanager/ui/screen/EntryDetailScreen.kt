@@ -219,26 +219,141 @@ fun EntryDetailScreen(
                         verticalArrangement = Arrangement.spacedBy(Spacing.s),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        fields.forEach { field ->
-                            if (field.value.isNotEmpty()) {
-                                val readableLabel = FieldFormatter.formatFieldLabel(context, field.key)
-                                val isSensitive = field.isEffectivelySensitive(entry.category)
+                        if (templateType == TemplateType.CARD) {
+                            // 1. Card Number (Full Width)
+                            val cardNumberField = fields.firstOrNull { it.key == "card_number" }
+                            if (cardNumberField != null && cardNumberField.value.isNotEmpty()) {
+                                val readableLabel = FieldFormatter.formatFieldLabel(context, cardNumberField.key)
+                                val isSensitive = cardNumberField.isEffectivelySensitive(entry.category)
                                 SensitiveField(
                                     label = readableLabel,
-                                    value = field.value,
+                                    value = cardNumberField.value,
                                     isSensitive = isSensitive,
                                     onCopy = { secret ->
-                                        ClipboardHelper.copyToClipboard(
-                                            context = context,
-                                            label = readableLabel,
-                                            text = secret,
-                                            isSensitive = isSensitive
-                                        )
+                                        ClipboardHelper.copyToClipboard(context, readableLabel, secret, isSensitive)
                                         scope.launch {
                                             snackbarHostState.showSnackbar(context.getString(R.string.copied_item, readableLabel))
                                         }
                                     }
                                 )
+                            }
+
+                            // 2. Expiry Date & CVV Row (Directly under card number, side-by-side in same row)
+                            val expiryField = fields.firstOrNull { it.key == "expiry_date" }
+                            val cvvField = fields.firstOrNull { it.key == "cvv" }
+                            val hasExpiry = expiryField != null && expiryField.value.isNotEmpty()
+                            val hasCvv = cvvField != null && cvvField.value.isNotEmpty()
+
+                            if (hasExpiry && hasCvv) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(Spacing.s)
+                                ) {
+                                    val expLabel = FieldFormatter.formatFieldLabel(context, expiryField!!.key)
+                                    val expSensitive = expiryField.isEffectivelySensitive(entry.category)
+                                    SensitiveField(
+                                        label = expLabel,
+                                        value = expiryField.value,
+                                        isSensitive = expSensitive,
+                                        onCopy = { secret ->
+                                            ClipboardHelper.copyToClipboard(context, expLabel, secret, expSensitive)
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(context.getString(R.string.copied_item, expLabel))
+                                            }
+                                        },
+                                        modifier = Modifier.weight(1f)
+                                    )
+
+                                    val cvvLabel = FieldFormatter.formatFieldLabel(context, cvvField!!.key)
+                                    val cvvSensitive = cvvField.isEffectivelySensitive(entry.category)
+                                    SensitiveField(
+                                        label = cvvLabel,
+                                        value = cvvField.value,
+                                        isSensitive = cvvSensitive,
+                                        onCopy = { secret ->
+                                            ClipboardHelper.copyToClipboard(context, cvvLabel, secret, cvvSensitive)
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(context.getString(R.string.copied_item, cvvLabel))
+                                            }
+                                        },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            } else if (hasExpiry) {
+                                val expLabel = FieldFormatter.formatFieldLabel(context, expiryField!!.key)
+                                val expSensitive = expiryField.isEffectivelySensitive(entry.category)
+                                SensitiveField(
+                                    label = expLabel,
+                                    value = expiryField.value,
+                                    isSensitive = expSensitive,
+                                    onCopy = { secret ->
+                                        ClipboardHelper.copyToClipboard(context, expLabel, secret, expSensitive)
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(context.getString(R.string.copied_item, expLabel))
+                                        }
+                                    }
+                                )
+                            } else if (hasCvv) {
+                                val cvvLabel = FieldFormatter.formatFieldLabel(context, cvvField!!.key)
+                                val cvvSensitive = cvvField.isEffectivelySensitive(entry.category)
+                                SensitiveField(
+                                    label = cvvLabel,
+                                    value = cvvField.value,
+                                    isSensitive = cvvSensitive,
+                                    onCopy = { secret ->
+                                        ClipboardHelper.copyToClipboard(context, cvvLabel, secret, cvvSensitive)
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(context.getString(R.string.copied_item, cvvLabel))
+                                        }
+                                    }
+                                )
+                            }
+
+                            // 3. Other fields (Cardholder name, bank name, notes, etc.)
+                            fields.filter { it.key !in listOf("card_number", "expiry_date", "cvv") }.forEach { field ->
+                                if (field.value.isNotEmpty()) {
+                                    val readableLabel = FieldFormatter.formatFieldLabel(context, field.key)
+                                    val isSensitive = field.isEffectivelySensitive(entry.category)
+                                    SensitiveField(
+                                        label = readableLabel,
+                                        value = field.value,
+                                        isSensitive = isSensitive,
+                                        onCopy = { secret ->
+                                            ClipboardHelper.copyToClipboard(
+                                                context = context,
+                                                label = readableLabel,
+                                                text = secret,
+                                                isSensitive = isSensitive
+                                            )
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(context.getString(R.string.copied_item, readableLabel))
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        } else {
+                            fields.forEach { field ->
+                                if (field.value.isNotEmpty()) {
+                                    val readableLabel = FieldFormatter.formatFieldLabel(context, field.key)
+                                    val isSensitive = field.isEffectivelySensitive(entry.category)
+                                    SensitiveField(
+                                        label = readableLabel,
+                                        value = field.value,
+                                        isSensitive = isSensitive,
+                                        onCopy = { secret ->
+                                            ClipboardHelper.copyToClipboard(
+                                                context = context,
+                                                label = readableLabel,
+                                                text = secret,
+                                                isSensitive = isSensitive
+                                            )
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(context.getString(R.string.copied_item, readableLabel))
+                                            }
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

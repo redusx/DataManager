@@ -448,8 +448,97 @@ fun OverlayPanel(
                                     .height(240.dp),
                                 verticalArrangement = Arrangement.spacedBy(Spacing.xs)
                             ) {
-                                items(fields) { field ->
-                                    if (field.key.isNotBlank() && field.value.isNotBlank()) {
+                                val hasCardNumber = fields.any { it.key == "card_number" && it.value.isNotBlank() }
+                                if (hasCardNumber) {
+                                    val cardNumberField = fields.firstOrNull { it.key == "card_number" && it.value.isNotBlank() }
+                                    if (cardNumberField != null) {
+                                        item {
+                                            val isSensitive = cardNumberField.isEffectivelySensitive(currentEntry.category)
+                                            val readableLabel = FieldFormatter.formatFieldLabel(context, cardNumberField.key)
+                                            OverlayEntryFieldRow(
+                                                field = cardNumberField,
+                                                category = currentEntry.category,
+                                                entryTitle = currentEntry.title,
+                                                onCopy = {
+                                                    ClipboardHelper.copyToClipboard(context, readableLabel, cardNumberField.value, isSensitive)
+                                                    Toast.makeText(context, context.getString(R.string.copied_item, readableLabel), Toast.LENGTH_SHORT).show()
+                                                    scope.launch { delay(150); onCopiedAndMinimize() }
+                                                }
+                                            )
+                                        }
+                                    }
+
+                                    val expiryField = fields.firstOrNull { it.key == "expiry_date" && it.value.isNotBlank() }
+                                    val cvvField = fields.firstOrNull { it.key == "cvv" && it.value.isNotBlank() }
+                                    if (expiryField != null && cvvField != null) {
+                                        item {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
+                                            ) {
+                                                val expSensitive = expiryField.isEffectivelySensitive(currentEntry.category)
+                                                val expLabel = FieldFormatter.formatFieldLabel(context, expiryField.key)
+                                                OverlayEntryFieldRow(
+                                                    field = expiryField,
+                                                    category = currentEntry.category,
+                                                    entryTitle = currentEntry.title,
+                                                    onCopy = {
+                                                        ClipboardHelper.copyToClipboard(context, expLabel, expiryField.value, expSensitive)
+                                                        Toast.makeText(context, context.getString(R.string.copied_item, expLabel), Toast.LENGTH_SHORT).show()
+                                                        scope.launch { delay(150); onCopiedAndMinimize() }
+                                                    },
+                                                    modifier = Modifier.weight(1f)
+                                                )
+
+                                                val cvvSensitive = cvvField.isEffectivelySensitive(currentEntry.category)
+                                                val cvvLabel = FieldFormatter.formatFieldLabel(context, cvvField.key)
+                                                OverlayEntryFieldRow(
+                                                    field = cvvField,
+                                                    category = currentEntry.category,
+                                                    entryTitle = currentEntry.title,
+                                                    onCopy = {
+                                                        ClipboardHelper.copyToClipboard(context, cvvLabel, cvvField.value, cvvSensitive)
+                                                        Toast.makeText(context, context.getString(R.string.copied_item, cvvLabel), Toast.LENGTH_SHORT).show()
+                                                        scope.launch { delay(150); onCopiedAndMinimize() }
+                                                    },
+                                                    modifier = Modifier.weight(1f)
+                                                )
+                                            }
+                                        }
+                                    } else if (expiryField != null) {
+                                        item {
+                                            val expSensitive = expiryField.isEffectivelySensitive(currentEntry.category)
+                                            val expLabel = FieldFormatter.formatFieldLabel(context, expiryField.key)
+                                            OverlayEntryFieldRow(
+                                                field = expiryField,
+                                                category = currentEntry.category,
+                                                entryTitle = currentEntry.title,
+                                                onCopy = {
+                                                    ClipboardHelper.copyToClipboard(context, expLabel, expiryField.value, expSensitive)
+                                                    Toast.makeText(context, context.getString(R.string.copied_item, expLabel), Toast.LENGTH_SHORT).show()
+                                                    scope.launch { delay(150); onCopiedAndMinimize() }
+                                                }
+                                            )
+                                        }
+                                    } else if (cvvField != null) {
+                                        item {
+                                            val cvvSensitive = cvvField.isEffectivelySensitive(currentEntry.category)
+                                            val cvvLabel = FieldFormatter.formatFieldLabel(context, cvvField.key)
+                                            OverlayEntryFieldRow(
+                                                field = cvvField,
+                                                category = currentEntry.category,
+                                                entryTitle = currentEntry.title,
+                                                onCopy = {
+                                                    ClipboardHelper.copyToClipboard(context, cvvLabel, cvvField.value, cvvSensitive)
+                                                    Toast.makeText(context, context.getString(R.string.copied_item, cvvLabel), Toast.LENGTH_SHORT).show()
+                                                    scope.launch { delay(150); onCopiedAndMinimize() }
+                                                }
+                                            )
+                                        }
+                                    }
+
+                                    val otherFields = fields.filter { it.key !in listOf("card_number", "expiry_date", "cvv") && it.key.isNotBlank() && it.value.isNotBlank() }
+                                    items(otherFields) { field ->
                                         val isSensitive = field.isEffectivelySensitive(currentEntry.category)
                                         val readableLabel = FieldFormatter.formatFieldLabel(context, field.key)
                                         OverlayEntryFieldRow(
@@ -457,24 +546,28 @@ fun OverlayPanel(
                                             category = currentEntry.category,
                                             entryTitle = currentEntry.title,
                                             onCopy = {
-                                                ClipboardHelper.copyToClipboard(
-                                                    context = context,
-                                                    label = readableLabel,
-                                                    text = field.value,
-                                                    isSensitive = isSensitive
-                                                )
-                                                Toast.makeText(
-                                                    context,
-                                                    context.getString(R.string.copied_item, readableLabel),
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-
-                                                scope.launch {
-                                                    delay(150)
-                                                    onCopiedAndMinimize()
-                                                }
+                                                ClipboardHelper.copyToClipboard(context, readableLabel, field.value, isSensitive)
+                                                Toast.makeText(context, context.getString(R.string.copied_item, readableLabel), Toast.LENGTH_SHORT).show()
+                                                scope.launch { delay(150); onCopiedAndMinimize() }
                                             }
                                         )
+                                    }
+                                } else {
+                                    items(fields) { field ->
+                                        if (field.key.isNotBlank() && field.value.isNotBlank()) {
+                                            val isSensitive = field.isEffectivelySensitive(currentEntry.category)
+                                            val readableLabel = FieldFormatter.formatFieldLabel(context, field.key)
+                                            OverlayEntryFieldRow(
+                                                field = field,
+                                                category = currentEntry.category,
+                                                entryTitle = currentEntry.title,
+                                                onCopy = {
+                                                    ClipboardHelper.copyToClipboard(context, readableLabel, field.value, isSensitive)
+                                                    Toast.makeText(context, context.getString(R.string.copied_item, readableLabel), Toast.LENGTH_SHORT).show()
+                                                    scope.launch { delay(150); onCopiedAndMinimize() }
+                                                }
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -577,7 +670,8 @@ private fun OverlayEntryFieldRow(
     field: FieldItem,
     category: String,
     entryTitle: String,
-    onCopy: () -> Unit
+    onCopy: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val isSensitive = field.isEffectivelySensitive(category)
     var isRevealed by remember { mutableStateOf(!isSensitive) }
@@ -585,7 +679,7 @@ private fun OverlayEntryFieldRow(
     val readableLabel = FieldFormatter.formatFieldLabel(context, field.key)
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(ShapeTokens.CardRadius)
             .background(MaterialTheme.colorScheme.surfaceContainer)

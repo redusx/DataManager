@@ -28,8 +28,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.datamanager.R
 import com.example.datamanager.ui.theme.MonospaceSecretStyle
 import com.example.datamanager.ui.theme.ShapeTokens
 import com.example.datamanager.ui.theme.Spacing
@@ -61,6 +63,13 @@ fun SensitiveField(
         }
     }
 
+    val currentLocale = remember {
+        if (java.util.Locale.getDefault().language == "tr") java.util.Locale("tr", "TR") else java.util.Locale.getDefault()
+    }
+    val upperLabel = remember(label, currentLocale) {
+        label.uppercase(currentLocale)
+    }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -81,7 +90,7 @@ fun SensitiveField(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = label.uppercase(),
+                    text = upperLabel,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -112,7 +121,7 @@ fun SensitiveField(
                 ) {
                     Icon(
                         imageVector = if (isRevealed) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
-                        contentDescription = if (isRevealed) "Gizle" else "Göster",
+                        contentDescription = if (isRevealed) stringResource(R.string.hide_value) else stringResource(R.string.reveal_value),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
@@ -122,7 +131,7 @@ fun SensitiveField(
             // Quick Copy Action
             CopyButton(
                 onClick = { onCopy(value) },
-                contentDescription = "$label kopyala"
+                contentDescription = stringResource(R.string.copied_item, label)
             )
         }
     }

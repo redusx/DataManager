@@ -101,10 +101,10 @@ fun CardTemplateEditor(
     val cardNumber = getFieldValue("card_number")
     val expiryDate = getFieldValue("expiry_date")
     val cvv = getFieldValue("cvv")
-    val cardHolder = getFieldValue("card_holder")
+    val cardHolder = getFieldValue("card_holder").ifEmpty { getFieldValue("cardholder_name") }
     val bankName = getFieldValue("bank_name")
     val iban = getFieldValue("iban")
-    val accountHolder = getFieldValue("account_holder")
+    val accountHolder = getFieldValue("account_holder").ifEmpty { getFieldValue("cardholder_name") }
     val accountNumber = getFieldValue("account_number")
     val branchCode = getFieldValue("branch_code")
     val notes = getFieldValue("notes")
@@ -282,7 +282,10 @@ fun CardTemplateEditor(
             // Cardholder Name (Not sensitive - name)
             OutlinedTextField(
                 value = cardHolder,
-                onValueChange = { updateField("card_holder", it.uppercase(), FieldType.TEXT, isSensitive = false) },
+                onValueChange = {
+                    val loc = if (java.util.Locale.getDefault().language == "tr") java.util.Locale("tr", "TR") else java.util.Locale.getDefault()
+                    updateField("card_holder", it.uppercase(loc), FieldType.TEXT, isSensitive = false)
+                },
                 label = { Text(stringResource(R.string.cardholder_label)) },
                 placeholder = { Text("AHMET YILMAZ") },
                 singleLine = true,
@@ -422,8 +425,9 @@ fun CardTemplateEditor(
             OutlinedTextField(
                 value = if (accountHolder.isNotEmpty()) accountHolder else cardHolder,
                 onValueChange = {
-                    updateField("account_holder", it.uppercase(), FieldType.TEXT, isSensitive = false)
-                    updateField("card_holder", it.uppercase(), FieldType.TEXT, isSensitive = false)
+                    val loc = if (java.util.Locale.getDefault().language == "tr") java.util.Locale("tr", "TR") else java.util.Locale.getDefault()
+                    updateField("account_holder", it.uppercase(loc), FieldType.TEXT, isSensitive = false)
+                    updateField("card_holder", it.uppercase(loc), FieldType.TEXT, isSensitive = false)
                 },
                 label = { Text(stringResource(R.string.account_holder_label)) },
                 placeholder = { Text("AHMET YILMAZ") },
@@ -650,6 +654,9 @@ fun PhysicalCardPreview(
             )
 
             // Card Footer: Cardholder + Expiry & CVV
+            val cardLocale = remember {
+                if (java.util.Locale.getDefault().language == "tr") java.util.Locale("tr", "TR") else java.util.Locale.getDefault()
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -657,7 +664,7 @@ fun PhysicalCardPreview(
             ) {
                 Column {
                     Text(
-                        text = stringResource(R.string.cardholder_label).uppercase(),
+                        text = stringResource(R.string.cardholder_label).uppercase(cardLocale),
                         style = MaterialTheme.typography.labelSmall,
                         color = Color.White.copy(alpha = 0.5f),
                         fontSize = 9.sp
@@ -674,7 +681,7 @@ fun PhysicalCardPreview(
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = stringResource(R.string.expiry_label).take(3).uppercase(),
+                            text = stringResource(R.string.expiry_label).take(3).uppercase(cardLocale),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White.copy(alpha = 0.5f),
                             fontSize = 9.sp
