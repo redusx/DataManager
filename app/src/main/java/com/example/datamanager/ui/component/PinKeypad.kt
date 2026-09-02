@@ -37,6 +37,8 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import android.content.res.Configuration
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.sp
 
 @Composable
@@ -47,6 +49,7 @@ fun PinKeypad(
     modifier: Modifier = Modifier
 ) {
     val haptic = LocalHapticFeedback.current
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val keys = listOf(
         listOf("1", "2", "3"),
         listOf("4", "5", "6"),
@@ -56,7 +59,7 @@ fun PinKeypad(
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(if (isLandscape) 4.dp else 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         keys.forEach { row ->
@@ -72,13 +75,14 @@ fun PinKeypad(
                                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                     onDeleteClick()
                                 },
+                                isLandscape = isLandscape,
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.Backspace,
                                     contentDescription = "Delete",
                                     tint = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(if (isLandscape) 20.dp else 24.dp)
                                 )
                             }
                         }
@@ -89,13 +93,14 @@ fun PinKeypad(
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         onBiometricClick()
                                     },
+                                    isLandscape = isLandscape,
                                     modifier = Modifier.weight(1f)
                                 ) {
                                     Icon(
                                         imageVector = Icons.Filled.Fingerprint,
                                         contentDescription = "Biometric",
                                         tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(28.dp)
+                                        modifier = Modifier.size(if (isLandscape) 22.dp else 28.dp)
                                     )
                                 }
                             } else {
@@ -108,11 +113,12 @@ fun PinKeypad(
                                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                     onDigitClick(key)
                                 },
+                                isLandscape = isLandscape,
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Text(
                                     text = key,
-                                    style = MaterialTheme.typography.headlineMedium,
+                                    style = if (isLandscape) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -129,6 +135,7 @@ fun PinKeypad(
 private fun KeypadButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isLandscape: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -148,8 +155,8 @@ private fun KeypadButton(
 
     Box(
         modifier = modifier
-            .padding(horizontal = 8.dp)
-            .aspectRatio(1.4f)
+            .padding(horizontal = if (isLandscape) 4.dp else 8.dp)
+            .aspectRatio(if (isLandscape) 1.85f else 1.4f)
             .scale(scale)
             .clip(CircleShape)
             .background(bgColor)

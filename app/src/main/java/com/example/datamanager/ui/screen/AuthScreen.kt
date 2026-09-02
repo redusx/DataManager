@@ -20,6 +20,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import android.content.res.Configuration
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -124,154 +129,309 @@ fun AuthScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = Spacing.xl, vertical = Spacing.m),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Spacer(modifier = Modifier.height(Spacing.s))
+        val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-            // App Logo + Title & Instruction
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
+        if (isLandscape) {
+            // Landscape 2-Column Responsive Layout
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = Spacing.l, vertical = Spacing.s),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.app_icon),
-                    contentDescription = "MyVault Logo",
-                    contentScale = ContentScale.Crop,
+                // Left Column: Logo, Title, Subtitle, Dots, Error & Forgot PIN
+                Column(
                     modifier = Modifier
-                        .size(76.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                            shape = RoundedCornerShape(20.dp)
-                        )
-                )
-
-                Spacer(modifier = Modifier.height(Spacing.m))
-
-                Text(
-                    text = "MyVault",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Spacer(modifier = Modifier.height(Spacing.xs))
-
-                val subtitle = when (uiState.mode) {
-                    AuthMode.SETUP_PIN -> if (uiState.isResettingPinWithBiometric) "Yeni 6 Haneli PIN Belirleyin" else stringResource(R.string.setup_pin)
-                    AuthMode.CONFIRM_PIN -> stringResource(R.string.confirm_pin)
-                    AuthMode.ENTER_PIN -> stringResource(R.string.enter_pin)
-                    else -> ""
-                }
-
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            // PIN indicator dots + Error message
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                val currentPinLength = when (uiState.mode) {
-                    AuthMode.SETUP_PIN, AuthMode.ENTER_PIN -> uiState.pin.length
-                    AuthMode.CONFIRM_PIN -> uiState.confirmPin.length
-                    else -> 0
-                }
-
-                PinDots(
-                    pinLength = currentPinLength,
-                    maxLength = 6,
-                    isError = uiState.isError
-                )
-
-                Spacer(modifier = Modifier.height(Spacing.m))
-
-                // Error message
-                AnimatedVisibility(
-                    visible = uiState.isError,
-                    enter = fadeIn() + slideInVertically(),
-                    exit = fadeOut()
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    val errorText = when (uiState.errorMessage) {
-                        "pin_mismatch" -> stringResource(R.string.pin_mismatch)
-                        "wrong_pin" -> stringResource(R.string.wrong_pin)
-                        "setup_failed" -> stringResource(R.string.setup_failed)
-                        else -> stringResource(R.string.error_generic)
-                    }
+                    Image(
+                        painter = painterResource(id = R.drawable.app_icon),
+                        contentDescription = "MyVault Logo",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(52.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                shape = RoundedCornerShape(14.dp)
+                            )
+                    )
+
+                    Spacer(modifier = Modifier.height(Spacing.xs))
+
                     Text(
-                        text = errorText,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = "MyVault",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    val subtitle = when (uiState.mode) {
+                        AuthMode.SETUP_PIN -> if (uiState.isResettingPinWithBiometric) "Yeni 6 Haneli PIN Belirleyin" else stringResource(R.string.setup_pin)
+                        AuthMode.CONFIRM_PIN -> stringResource(R.string.confirm_pin)
+                        AuthMode.ENTER_PIN -> stringResource(R.string.enter_pin)
+                        else -> ""
+                    }
+
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(Spacing.s))
+
+                    val currentPinLength = when (uiState.mode) {
+                        AuthMode.SETUP_PIN, AuthMode.ENTER_PIN -> uiState.pin.length
+                        AuthMode.CONFIRM_PIN -> uiState.confirmPin.length
+                        else -> 0
+                    }
+
+                    PinDots(
+                        pinLength = currentPinLength,
+                        maxLength = 6,
+                        isError = uiState.isError
+                    )
+
+                    // Error message
+                    AnimatedVisibility(
+                        visible = uiState.isError,
+                        enter = fadeIn() + slideInVertically(),
+                        exit = fadeOut()
+                    ) {
+                        val errorText = when (uiState.errorMessage) {
+                            "pin_mismatch" -> stringResource(R.string.pin_mismatch)
+                            "wrong_pin" -> stringResource(R.string.wrong_pin)
+                            "setup_failed" -> stringResource(R.string.setup_failed)
+                            else -> stringResource(R.string.error_generic)
+                        }
+                        Text(
+                            text = errorText,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+
+                    // Lockout message
+                    AnimatedVisibility(visible = uiState.isLockedOut) {
+                        Text(
+                            text = stringResource(R.string.locked_out),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+
+                    if (uiState.mode == AuthMode.ENTER_PIN) {
+                        Spacer(modifier = Modifier.height(Spacing.xs))
+                        TextButton(
+                            onClick = { showRecoveryOptionsSheet = true },
+                            shape = ShapeTokens.ButtonRadius
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.HelpOutline,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(Spacing.xxs))
+                            Text(
+                                text = stringResource(R.string.forgot_pin),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(Spacing.m))
+
+                // Right Column: Keypad
+                Column(
+                    modifier = Modifier
+                        .weight(1.15f)
+                        .fillMaxHeight(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    AnimatedVisibility(
+                        visible = uiState.mode != AuthMode.LOADING && uiState.mode != AuthMode.AUTHENTICATED,
+                        enter = fadeIn()
+                    ) {
+                        PinKeypad(
+                            onDigitClick = { viewModel.onDigitEntered(it) },
+                            onDeleteClick = { viewModel.onDeleteDigit() },
+                            onBiometricClick = if (uiState.isBiometricAvailable && uiState.mode == AuthMode.ENTER_PIN) {
+                                {
+                                    onBiometricRequested {
+                                        viewModel.onBiometricSuccess()
+                                    }
+                                }
+                            } else null
+                        )
+                    }
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = Spacing.xl, vertical = Spacing.m),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Spacer(modifier = Modifier.height(Spacing.s))
+
+                // App Logo + Title & Instruction
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.app_icon),
+                        contentDescription = "MyVault Logo",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(76.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                shape = RoundedCornerShape(20.dp)
+                            )
+                    )
+
+                    Spacer(modifier = Modifier.height(Spacing.m))
+
+                    Text(
+                        text = "MyVault",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    Spacer(modifier = Modifier.height(Spacing.xs))
+
+                    val subtitle = when (uiState.mode) {
+                        AuthMode.SETUP_PIN -> if (uiState.isResettingPinWithBiometric) "Yeni 6 Haneli PIN Belirleyin" else stringResource(R.string.setup_pin)
+                        AuthMode.CONFIRM_PIN -> stringResource(R.string.confirm_pin)
+                        AuthMode.ENTER_PIN -> stringResource(R.string.enter_pin)
+                        else -> ""
+                    }
+
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
                 }
 
-                // Lockout message
-                AnimatedVisibility(visible = uiState.isLockedOut) {
-                    Text(
-                        text = stringResource(R.string.locked_out),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = Spacing.xs)
-                    )
-                }
-            }
-
-            // Keypad + Forgot Password Action
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                AnimatedVisibility(
-                    visible = uiState.mode != AuthMode.LOADING && uiState.mode != AuthMode.AUTHENTICATED,
-                    enter = slideInVertically(initialOffsetY = { it / 2 }) + fadeIn()
+                // PIN indicator dots + Error message
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    PinKeypad(
-                        onDigitClick = { viewModel.onDigitEntered(it) },
-                        onDeleteClick = { viewModel.onDeleteDigit() },
-                        onBiometricClick = if (uiState.isBiometricAvailable && uiState.mode == AuthMode.ENTER_PIN) {
-                            {
-                                onBiometricRequested {
-                                    viewModel.onBiometricSuccess()
-                                }
-                            }
-                        } else null,
-                        modifier = Modifier.padding(horizontal = Spacing.s)
-                    )
-                }
+                    val currentPinLength = when (uiState.mode) {
+                        AuthMode.SETUP_PIN, AuthMode.ENTER_PIN -> uiState.pin.length
+                        AuthMode.CONFIRM_PIN -> uiState.confirmPin.length
+                        else -> 0
+                    }
 
-                if (uiState.mode == AuthMode.ENTER_PIN) {
-                    Spacer(modifier = Modifier.height(Spacing.xs))
-                    TextButton(
-                        onClick = { showRecoveryOptionsSheet = true },
-                        shape = ShapeTokens.ButtonRadius
+                    PinDots(
+                        pinLength = currentPinLength,
+                        maxLength = 6,
+                        isError = uiState.isError
+                    )
+
+                    Spacer(modifier = Modifier.height(Spacing.m))
+
+                    // Error message
+                    AnimatedVisibility(
+                        visible = uiState.isError,
+                        enter = fadeIn() + slideInVertically(),
+                        exit = fadeOut()
                     ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.HelpOutline,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(Spacing.xxs))
+                        val errorText = when (uiState.errorMessage) {
+                            "pin_mismatch" -> stringResource(R.string.pin_mismatch)
+                            "wrong_pin" -> stringResource(R.string.wrong_pin)
+                            "setup_failed" -> stringResource(R.string.setup_failed)
+                            else -> stringResource(R.string.error_generic)
+                        }
                         Text(
-                            text = stringResource(R.string.forgot_pin),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary
+                            text = errorText,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
+                    // Lockout message
+                    AnimatedVisibility(visible = uiState.isLockedOut) {
+                        Text(
+                            text = stringResource(R.string.locked_out),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(top = Spacing.xs)
                         )
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(Spacing.xs))
+                // Keypad + Forgot Password Action
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    AnimatedVisibility(
+                        visible = uiState.mode != AuthMode.LOADING && uiState.mode != AuthMode.AUTHENTICATED,
+                        enter = slideInVertically(initialOffsetY = { it / 2 }) + fadeIn()
+                    ) {
+                        PinKeypad(
+                            onDigitClick = { viewModel.onDigitEntered(it) },
+                            onDeleteClick = { viewModel.onDeleteDigit() },
+                            onBiometricClick = if (uiState.isBiometricAvailable && uiState.mode == AuthMode.ENTER_PIN) {
+                                {
+                                    onBiometricRequested {
+                                        viewModel.onBiometricSuccess()
+                                    }
+                                }
+                            } else null,
+                            modifier = Modifier.padding(horizontal = Spacing.s)
+                        )
+                    }
+
+                    if (uiState.mode == AuthMode.ENTER_PIN) {
+                        Spacer(modifier = Modifier.height(Spacing.xs))
+                        TextButton(
+                            onClick = { showRecoveryOptionsSheet = true },
+                            shape = ShapeTokens.ButtonRadius
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.HelpOutline,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(Spacing.xxs))
+                            Text(
+                                text = stringResource(R.string.forgot_pin),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(Spacing.xs))
+            }
         }
 
         SnackbarHost(
