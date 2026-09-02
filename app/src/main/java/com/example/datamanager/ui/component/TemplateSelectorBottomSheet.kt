@@ -37,7 +37,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.datamanager.R
 import com.example.datamanager.data.model.TemplateType
 import com.example.datamanager.ui.theme.CategoryCardsTint
 import com.example.datamanager.ui.theme.CategoryIdentityTint
@@ -82,7 +84,7 @@ fun TemplateSelectorBottomSheet(
                 .padding(bottom = Spacing.xxl)
         ) {
             Text(
-                text = "Kayıt Türü Seçin",
+                text = stringResource(R.string.select_record_type),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -90,7 +92,7 @@ fun TemplateSelectorBottomSheet(
             Spacer(modifier = Modifier.height(Spacing.xxs))
 
             Text(
-                text = "Kasanıza eklemek istediğiniz bilgiye uygun hazır şablonu seçin.",
+                text = stringResource(R.string.select_record_type_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -156,13 +158,13 @@ private fun TemplateOptionCard(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = option.type.title,
+                    text = stringResource(option.type.titleRes),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = option.type.description,
+                    text = stringResource(option.type.descriptionRes),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

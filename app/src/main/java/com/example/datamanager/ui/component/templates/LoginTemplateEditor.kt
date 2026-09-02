@@ -41,12 +41,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.datamanager.R
 import com.example.datamanager.data.model.FieldItem
 import com.example.datamanager.data.model.FieldType
 import com.example.datamanager.data.model.PopularServices
@@ -76,7 +78,7 @@ fun LoginTemplateEditor(
         val list = fields.toMutableList()
         val index = list.indexOfFirst { it.key == key }
         if (index >= 0) {
-            list[index] = list[index].copy(value = value)
+            list[index] = list[index].copy(value = value, isSensitive = isSensitive)
         } else {
             list.add(FieldItem(key = key, value = value, type = type, isSensitive = isSensitive))
         }
@@ -95,9 +97,6 @@ fun LoginTemplateEditor(
     fun applyPreset(preset: ServicePreset) {
         onTitleChange(preset.name)
         updateField("website", preset.domain, FieldType.TEXT)
-        if (username.isEmpty() && preset.defaultUsernameHint.isNotEmpty()) {
-            // Leave blank or guide
-        }
     }
 
     Column(
@@ -107,7 +106,7 @@ fun LoginTemplateEditor(
         // Popular Service Quick-Select
         Column {
             Text(
-                text = "HIZLI SERVİS SEÇİMİ",
+                text = stringResource(R.string.login_select_service),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold
@@ -115,26 +114,28 @@ fun LoginTemplateEditor(
             Spacer(modifier = Modifier.height(Spacing.xs))
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
-                contentPadding = PaddingValues(vertical = 2.dp)
+                contentPadding = PaddingValues(horizontal = 2.dp)
             ) {
                 items(PopularServices.all, key = { it.name }) { preset ->
                     val isSelected = title.equals(preset.name, ignoreCase = true)
                     Box(
                         modifier = Modifier
                             .clip(ShapeTokens.ChipRadius)
-                            .background(if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer)
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                else MaterialTheme.colorScheme.surfaceContainer
+                            )
                             .border(
                                 width = 1.dp,
                                 color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
                                 shape = ShapeTokens.ChipRadius
                             )
                             .clickable { applyPreset(preset) }
-                            .padding(horizontal = Spacing.s, vertical = 6.dp),
-                        contentAlignment = Alignment.Center
+                            .padding(horizontal = Spacing.s, vertical = 6.dp)
                     ) {
                         Text(
                             text = preset.name,
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelMedium,
                             color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -142,12 +143,12 @@ fun LoginTemplateEditor(
             }
         }
 
-        // Title / Service
+        // Title
         OutlinedTextField(
             value = title,
             onValueChange = onTitleChange,
-            label = { Text("Hesap / Servis Adı") },
-            placeholder = { Text("örn. Google, GitHub, Netflix") },
+            label = { Text(stringResource(R.string.login_title_label)) },
+            placeholder = { Text(stringResource(R.string.login_title_placeholder)) },
             singleLine = true,
             isError = titleError,
             modifier = Modifier.fillMaxWidth(),
@@ -161,9 +162,9 @@ fun LoginTemplateEditor(
         // Username / Email
         OutlinedTextField(
             value = username,
-            onValueChange = { updateField("username", it, FieldType.TEXT) },
-            label = { Text("Kullanıcı Adı veya E-Posta") },
-            placeholder = { Text("ornek@gmail.com") },
+            onValueChange = { updateField("username", it, FieldType.TEXT, isSensitive = false) },
+            label = { Text(stringResource(R.string.login_username_label)) },
+            placeholder = { Text("example@gmail.com") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             modifier = Modifier.fillMaxWidth(),
@@ -179,7 +180,7 @@ fun LoginTemplateEditor(
             OutlinedTextField(
                 value = password,
                 onValueChange = { updateField("password", it, FieldType.PASSWORD, isSensitive = true) },
-                label = { Text("Şifre") },
+                label = { Text(stringResource(R.string.login_password_label)) },
                 singleLine = true,
                 visualTransformation = if (isPasswordRevealed) VisualTransformation.None else PasswordVisualTransformation(),
                 textStyle = if (!isPasswordRevealed) MonospaceSecretStyle else MaterialTheme.typography.bodyLarge,
@@ -195,7 +196,7 @@ fun LoginTemplateEditor(
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.Casino,
-                                contentDescription = "Güçlü Şifre Üret",
+                                contentDescription = stringResource(R.string.generate_password),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
@@ -204,7 +205,7 @@ fun LoginTemplateEditor(
                         IconButton(onClick = { isPasswordRevealed = !isPasswordRevealed }) {
                             Icon(
                                 imageVector = if (isPasswordRevealed) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
-                                contentDescription = if (isPasswordRevealed) "Gizle" else "Göster",
+                                contentDescription = if (isPasswordRevealed) stringResource(R.string.hide_value) else stringResource(R.string.reveal_value),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(20.dp)
                             )
@@ -226,9 +227,9 @@ fun LoginTemplateEditor(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val (strengthText, strengthColor, strengthRatio) = when (passwordStrength) {
-                        PasswordGenerator.Strength.STRONG -> Triple("Güçlü", DarkSuccess, 1f)
-                        PasswordGenerator.Strength.MEDIUM -> Triple("Orta", WarningOrange, 0.6f)
-                        PasswordGenerator.Strength.WEAK -> Triple("Zayıf", MaterialTheme.colorScheme.error, 0.3f)
+                        PasswordGenerator.Strength.STRONG -> Triple(stringResource(R.string.pass_strong), DarkSuccess, 1f)
+                        PasswordGenerator.Strength.MEDIUM -> Triple(stringResource(R.string.pass_medium), WarningOrange, 0.6f)
+                        PasswordGenerator.Strength.WEAK -> Triple(stringResource(R.string.pass_weak), MaterialTheme.colorScheme.error, 0.3f)
                     }
 
                     Box(
@@ -250,20 +251,21 @@ fun LoginTemplateEditor(
                     Spacer(modifier = Modifier.width(Spacing.s))
 
                     Text(
-                        text = "$strengthText (${password.length} hane)",
+                        text = strengthText,
                         style = MaterialTheme.typography.labelSmall,
-                        color = strengthColor
+                        color = strengthColor,
+                        fontSize = 11.sp
                     )
                 }
             }
         }
 
-        // Website URL
+        // Website / Login URL
         OutlinedTextField(
             value = website,
-            onValueChange = { updateField("website", it, FieldType.TEXT) },
-            label = { Text("Web Sitesi / URL (İsteğe bağlı)") },
-            placeholder = { Text("accounts.google.com") },
+            onValueChange = { updateField("website", it, FieldType.TEXT, isSensitive = false) },
+            label = { Text(stringResource(R.string.login_website_label)) },
+            placeholder = { Text("https://example.com") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
             modifier = Modifier.fillMaxWidth(),
@@ -274,7 +276,7 @@ fun LoginTemplateEditor(
             )
         )
 
-        // Progressive Disclosure: Additional Notes
+        // Progressive Disclosure: Notes
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -294,7 +296,7 @@ fun LoginTemplateEditor(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = if (showAdditional) "Ek Bilgileri Gizle" else "＋ Ek Not ve Güvenlik Bilgisi Ekle",
+                    text = if (showAdditional) stringResource(R.string.hide_note_action) else stringResource(R.string.add_note_action),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -314,9 +316,9 @@ fun LoginTemplateEditor(
         ) {
             OutlinedTextField(
                 value = notes,
-                onValueChange = { updateField("notes", it, FieldType.MULTILINE) },
-                label = { Text("Güvenlik Notu / 2FA Kurtarma Kodları") },
-                placeholder = { Text("Yedek kodlar, gizli sorular...") },
+                onValueChange = { updateField("notes", it, FieldType.MULTILINE, isSensitive = false) },
+                label = { Text(stringResource(R.string.login_note_label)) },
+                placeholder = { Text("") },
                 minLines = 3,
                 modifier = Modifier.fillMaxWidth(),
                 shape = ShapeTokens.InputRadius,

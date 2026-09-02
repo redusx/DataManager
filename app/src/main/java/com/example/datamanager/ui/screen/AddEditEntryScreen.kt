@@ -74,17 +74,9 @@ fun AddEditEntryScreen(
 
     val isEditing = entryId != null && entryId > 0
     val screenTitle = if (isEditing) {
-        "Kaydı Düzenle"
+        stringResource(R.string.edit_entry)
     } else {
-        when (uiState.templateType) {
-            TemplateType.LOGIN -> "Giriş & Hesap Ekle"
-            TemplateType.CARD -> "Banka & Kredi Kartı Ekle"
-            TemplateType.BANK_ACCOUNT -> "Banka Hesabı & IBAN Ekle"
-            TemplateType.IDENTITY -> "Kimlik Belgesi Ekle"
-            TemplateType.ADDRESS -> "Adres & İletişim Ekle"
-            TemplateType.SECURE_NOTE -> "Güvenli Not Ekle"
-            TemplateType.CUSTOM -> "Özel Kayıt Ekle"
-        }
+        stringResource(uiState.templateType.titleRes)
     }
 
     Scaffold(
@@ -105,7 +97,7 @@ fun AddEditEntryScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                            contentDescription = "Geri",
+                            contentDescription = stringResource(R.string.overlay_back),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }

@@ -24,8 +24,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.datamanager.R
 import com.example.datamanager.data.model.FieldItem
 import com.example.datamanager.data.model.FieldType
 import com.example.datamanager.ui.theme.MonospaceSecretStyle
@@ -49,7 +50,7 @@ fun SecureNoteTemplateEditor(
         val list = fields.toMutableList()
         val index = list.indexOfFirst { it.key == key }
         if (index >= 0) {
-            list[index] = list[index].copy(value = value)
+            list[index] = list[index].copy(value = value, isSensitive = isSensitive)
         } else {
             list.add(FieldItem(key = key, value = value, type = type, isSensitive = isSensitive))
         }
@@ -66,8 +67,8 @@ fun SecureNoteTemplateEditor(
         OutlinedTextField(
             value = title,
             onValueChange = onTitleChange,
-            label = { Text("Not Başlığı") },
-            placeholder = { Text("örn. Kripto Cüzdan Kurtarma Kelimeleri, Wi-Fi Şifresi") },
+            label = { Text(stringResource(R.string.note_title_label)) },
+            placeholder = { Text(stringResource(R.string.note_title_placeholder)) },
             singleLine = true,
             isError = titleError,
             modifier = Modifier.fillMaxWidth(),
@@ -96,18 +97,11 @@ fun SecureNoteTemplateEditor(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
-                    Text(
-                        text = "Sabit Genişlikli Yazı Tipi (Monospace)",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "Kod, kurtarma anahtarları ve şifreler için uygundur",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                Text(
+                    text = stringResource(R.string.monospace_font_toggle),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
                 Switch(
                     checked = isMonospace,
                     onCheckedChange = { isMonospace = it }
@@ -119,8 +113,8 @@ fun SecureNoteTemplateEditor(
         OutlinedTextField(
             value = content,
             onValueChange = { updateField("note_content", it, FieldType.MULTILINE, isSensitive = true) },
-            label = { Text("Not İçeriği") },
-            placeholder = { Text("Gizli notlarınızı buraya yazın...") },
+            label = { Text(stringResource(R.string.note_content_label)) },
+            placeholder = { Text("") },
             minLines = 8,
             textStyle = if (isMonospace) MonospaceSecretStyle else MaterialTheme.typography.bodyLarge,
             modifier = Modifier.fillMaxWidth(),

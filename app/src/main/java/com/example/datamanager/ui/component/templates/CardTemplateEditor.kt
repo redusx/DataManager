@@ -43,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -50,9 +51,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.datamanager.R
 import com.example.datamanager.data.model.FieldItem
 import com.example.datamanager.data.model.FieldType
-import com.example.datamanager.ui.theme.CategoryCardsTint
 import com.example.datamanager.ui.theme.MonospaceSecretStyle
 import com.example.datamanager.ui.theme.ShapeTokens
 import com.example.datamanager.ui.theme.Spacing
@@ -80,7 +81,7 @@ fun CardTemplateEditor(
         val list = fields.toMutableList()
         val index = list.indexOfFirst { it.key == key }
         if (index >= 0) {
-            list[index] = list[index].copy(value = value)
+            list[index] = list[index].copy(value = value, isSensitive = isSensitive)
         } else {
             list.add(FieldItem(key = key, value = value, type = type, isSensitive = isSensitive))
         }
@@ -150,7 +151,7 @@ fun CardTemplateEditor(
                     )
                     Spacer(modifier = Modifier.width(Spacing.xs))
                     Text(
-                        text = "Kredi / Banka Kartı",
+                        text = stringResource(R.string.subtab_card),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = if (isCardSelected) FontWeight.Bold else FontWeight.Normal,
                         color = if (isCardSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
@@ -177,7 +178,7 @@ fun CardTemplateEditor(
                     )
                     Spacer(modifier = Modifier.width(Spacing.xs))
                     Text(
-                        text = "Banka Hesabı / IBAN",
+                        text = stringResource(R.string.subtab_bank_account),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = if (isIbanSelected) FontWeight.Bold else FontWeight.Normal,
                         color = if (isIbanSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
@@ -189,7 +190,7 @@ fun CardTemplateEditor(
         if (activeTab == FinancialSubTab.CARD) {
             // Physical Card Preview Widget
             PhysicalCardPreview(
-                title = title.ifEmpty { "Kredi / Banka Kartı" },
+                title = title.ifEmpty { stringResource(R.string.subtab_card) },
                 cardNumber = cardNumber,
                 expiryDate = expiryDate,
                 cvv = cvv,
@@ -201,8 +202,8 @@ fun CardTemplateEditor(
             OutlinedTextField(
                 value = title,
                 onValueChange = onTitleChange,
-                label = { Text("Kart Başlığı / Takma Ad") },
-                placeholder = { Text("örn. Garanti Bonus, Maaş Kartı") },
+                label = { Text(stringResource(R.string.card_title_label)) },
+                placeholder = { Text(stringResource(R.string.card_title_placeholder)) },
                 singleLine = true,
                 isError = titleError,
                 modifier = Modifier.fillMaxWidth(),
@@ -213,11 +214,11 @@ fun CardTemplateEditor(
                 )
             )
 
-            // Card Number
+            // Card Number (Sensitive)
             OutlinedTextField(
                 value = cardNumber,
                 onValueChange = { if (it.length <= 19) updateField("card_number", it.filter { c -> c.isDigit() }, FieldType.CARD_NUMBER, isSensitive = true) },
-                label = { Text("Kart Numarası") },
+                label = { Text(stringResource(R.string.card_number_label)) },
                 placeholder = { Text("4242 4242 4242 4242") },
                 singleLine = true,
                 visualTransformation = CardNumberVisualTransformation(),
@@ -230,15 +231,15 @@ fun CardTemplateEditor(
                 )
             )
 
-            // Expiry & CVV Row
+            // Expiry & CVV Row (Both Sensitive)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.s)
             ) {
                 OutlinedTextField(
                     value = expiryDate,
-                    onValueChange = { if (it.length <= 4) updateField("expiry_date", it.filter { c -> c.isDigit() }, FieldType.DATE) },
-                    label = { Text("Son Kullanma (AA/YY)") },
+                    onValueChange = { if (it.length <= 4) updateField("expiry_date", it.filter { c -> c.isDigit() }, FieldType.DATE, isSensitive = true) },
+                    label = { Text(stringResource(R.string.expiry_label)) },
                     placeholder = { Text("12 / 28") },
                     singleLine = true,
                     visualTransformation = ExpiryDateVisualTransformation(),
@@ -254,7 +255,7 @@ fun CardTemplateEditor(
                 OutlinedTextField(
                     value = cvv,
                     onValueChange = { if (it.length <= 4) updateField("cvv", it.filter { c -> c.isDigit() }, FieldType.NUMBER, isSensitive = true) },
-                    label = { Text("CVV / CVC") },
+                    label = { Text(stringResource(R.string.cvv_label)) },
                     placeholder = { Text("•••") },
                     singleLine = true,
                     visualTransformation = if (isCvvRevealed) VisualTransformation.None else PasswordVisualTransformation(),
@@ -263,7 +264,7 @@ fun CardTemplateEditor(
                         IconButton(onClick = { isCvvRevealed = !isCvvRevealed }) {
                             Icon(
                                 imageVector = if (isCvvRevealed) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
-                                contentDescription = if (isCvvRevealed) "Gizle" else "Göster",
+                                contentDescription = if (isCvvRevealed) stringResource(R.string.hide_value) else stringResource(R.string.reveal_value),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -278,11 +279,11 @@ fun CardTemplateEditor(
                 )
             }
 
-            // Cardholder Name
+            // Cardholder Name (Not sensitive - name)
             OutlinedTextField(
                 value = cardHolder,
-                onValueChange = { updateField("card_holder", it.uppercase(), FieldType.TEXT) },
-                label = { Text("Kart Üzerindeki İsim") },
+                onValueChange = { updateField("card_holder", it.uppercase(), FieldType.TEXT, isSensitive = false) },
+                label = { Text(stringResource(R.string.cardholder_label)) },
                 placeholder = { Text("AHMET YILMAZ") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
@@ -314,7 +315,7 @@ fun CardTemplateEditor(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = if (showAdditional) "Ek Bilgileri Gizle" else "＋ Ek Bilgiler Ekle (Banka, IBAN, Not)",
+                        text = if (showAdditional) stringResource(R.string.hide_additional_info) else stringResource(R.string.add_card_additional_info),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -338,9 +339,9 @@ fun CardTemplateEditor(
                 ) {
                     OutlinedTextField(
                         value = bankName,
-                        onValueChange = { updateField("bank_name", it, FieldType.TEXT) },
-                        label = { Text("Banka Adı") },
-                        placeholder = { Text("örn. Garanti BBVA, Akbank, İş Bankası") },
+                        onValueChange = { updateField("bank_name", it, FieldType.TEXT, isSensitive = false) },
+                        label = { Text(stringResource(R.string.bank_name_label)) },
+                        placeholder = { Text(stringResource(R.string.bank_name_placeholder)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         shape = ShapeTokens.InputRadius,
@@ -353,7 +354,7 @@ fun CardTemplateEditor(
                     OutlinedTextField(
                         value = iban,
                         onValueChange = { updateField("iban", it.replace(" ", "").uppercase(), FieldType.IBAN, isSensitive = true) },
-                        label = { Text("Bağlı IBAN Numarası") },
+                        label = { Text(stringResource(R.string.linked_iban_label)) },
                         placeholder = { Text("TR33 0006 1005 ...") },
                         singleLine = true,
                         visualTransformation = IbanVisualTransformation(),
@@ -369,9 +370,9 @@ fun CardTemplateEditor(
 
                     OutlinedTextField(
                         value = notes,
-                        onValueChange = { updateField("notes", it, FieldType.MULTILINE) },
-                        label = { Text("Kart Notu / Açıklama") },
-                        placeholder = { Text("İnternet alışveriş limiti, hesap kesim tarihi...") },
+                        onValueChange = { updateField("notes", it, FieldType.MULTILINE, isSensitive = false) },
+                        label = { Text(stringResource(R.string.card_note_label)) },
+                        placeholder = { Text("") },
                         minLines = 2,
                         modifier = Modifier.fillMaxWidth(),
                         shape = ShapeTokens.InputRadius,
@@ -387,8 +388,8 @@ fun CardTemplateEditor(
             OutlinedTextField(
                 value = title,
                 onValueChange = onTitleChange,
-                label = { Text("Hesap Tanımı / Başlık") },
-                placeholder = { Text("örn. İş Bankası Maaş Hesabım") },
+                label = { Text(stringResource(R.string.account_title_label)) },
+                placeholder = { Text(stringResource(R.string.account_title_placeholder)) },
                 singleLine = true,
                 isError = titleError,
                 modifier = Modifier.fillMaxWidth(),
@@ -399,11 +400,11 @@ fun CardTemplateEditor(
                 )
             )
 
-            // IBAN
+            // IBAN (Sensitive)
             OutlinedTextField(
                 value = iban,
                 onValueChange = { updateField("iban", it.replace(" ", "").uppercase(), FieldType.IBAN, isSensitive = true) },
-                label = { Text("IBAN Numarası") },
+                label = { Text(stringResource(R.string.field_iban)) },
                 placeholder = { Text("TR33 0006 1005 ...") },
                 singleLine = true,
                 visualTransformation = IbanVisualTransformation(),
@@ -417,14 +418,14 @@ fun CardTemplateEditor(
                 )
             )
 
-            // Account Holder
+            // Account Holder (Not sensitive - name)
             OutlinedTextField(
                 value = if (accountHolder.isNotEmpty()) accountHolder else cardHolder,
                 onValueChange = {
-                    updateField("account_holder", it.uppercase(), FieldType.TEXT)
-                    updateField("card_holder", it.uppercase(), FieldType.TEXT)
+                    updateField("account_holder", it.uppercase(), FieldType.TEXT, isSensitive = false)
+                    updateField("card_holder", it.uppercase(), FieldType.TEXT, isSensitive = false)
                 },
-                label = { Text("Hesap Sahibi") },
+                label = { Text(stringResource(R.string.account_holder_label)) },
                 placeholder = { Text("AHMET YILMAZ") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
@@ -436,12 +437,12 @@ fun CardTemplateEditor(
                 )
             )
 
-            // Bank Name
+            // Bank Name (Not sensitive)
             OutlinedTextField(
                 value = bankName,
-                onValueChange = { updateField("bank_name", it, FieldType.TEXT) },
-                label = { Text("Banka Adı") },
-                placeholder = { Text("örn. Türkiye İş Bankası, Garanti BBVA") },
+                onValueChange = { updateField("bank_name", it, FieldType.TEXT, isSensitive = false) },
+                label = { Text(stringResource(R.string.bank_name_label)) },
+                placeholder = { Text(stringResource(R.string.bank_name_placeholder)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = ShapeTokens.InputRadius,
@@ -471,7 +472,7 @@ fun CardTemplateEditor(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = if (showAdditional) "Ek Bilgileri Gizle" else "＋ Ek Bilgiler Ekle (Hesap No, Şube Kodu)",
+                        text = if (showAdditional) stringResource(R.string.hide_additional_info) else stringResource(R.string.add_account_additional_info),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -497,10 +498,11 @@ fun CardTemplateEditor(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(Spacing.s)
                     ) {
+                        // Branch Code (Sensitive)
                         OutlinedTextField(
                             value = branchCode,
-                            onValueChange = { updateField("branch_code", it, FieldType.TEXT) },
-                            label = { Text("Şube Kodu") },
+                            onValueChange = { updateField("branch_code", it, FieldType.TEXT, isSensitive = true) },
+                            label = { Text(stringResource(R.string.branch_code_label)) },
                             placeholder = { Text("1234") },
                             singleLine = true,
                             modifier = Modifier.weight(1f),
@@ -511,10 +513,11 @@ fun CardTemplateEditor(
                             )
                         )
 
+                        // Account Number (Sensitive)
                         OutlinedTextField(
                             value = accountNumber,
-                            onValueChange = { updateField("account_number", it, FieldType.NUMBER) },
-                            label = { Text("Hesap No") },
+                            onValueChange = { updateField("account_number", it, FieldType.NUMBER, isSensitive = true) },
+                            label = { Text(stringResource(R.string.account_number_label)) },
                             placeholder = { Text("5678901") },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -529,9 +532,9 @@ fun CardTemplateEditor(
 
                     OutlinedTextField(
                         value = notes,
-                        onValueChange = { updateField("notes", it, FieldType.MULTILINE) },
-                        label = { Text("Hesap Notu / Açıklama") },
-                        placeholder = { Text("Maaş hesabı, kira ödemeleri...") },
+                        onValueChange = { updateField("notes", it, FieldType.MULTILINE, isSensitive = false) },
+                        label = { Text(stringResource(R.string.account_note_label)) },
+                        placeholder = { Text("") },
                         minLines = 2,
                         modifier = Modifier.fillMaxWidth(),
                         shape = ShapeTokens.InputRadius,
@@ -555,6 +558,8 @@ fun PhysicalCardPreview(
     cardHolder: String,
     cardBrand: String
 ) {
+    var isRevealed by remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -581,7 +586,7 @@ fun PhysicalCardPreview(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Card Header: Title + EMV Chip + Brand
+            // Card Header: Title + EMV Chip + Eye Toggle + Brand
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -599,18 +604,37 @@ fun PhysicalCardPreview(
                         )
                 )
 
-                Text(
-                    text = cardBrand,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Black,
-                    color = Color.White.copy(alpha = 0.9f),
-                    letterSpacing = 2.sp
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = { isRevealed = !isRevealed },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (isRevealed) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+                            contentDescription = if (isRevealed) stringResource(R.string.hide_value) else stringResource(R.string.reveal_value),
+                            tint = Color.White.copy(alpha = 0.8f),
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(Spacing.xs))
+
+                    Text(
+                        text = cardBrand,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White.copy(alpha = 0.9f),
+                        letterSpacing = 2.sp
+                    )
+                }
             }
 
-            // Card Number
+            // Card Number (Masked unless isRevealed is true)
             val formattedNumber = if (cardNumber.isEmpty()) {
                 "•••• •••• •••• ••••"
+            } else if (!isRevealed) {
+                val last4 = if (cardNumber.length >= 4) cardNumber.takeLast(4) else cardNumber
+                "•••• •••• •••• $last4"
             } else {
                 cardNumber.chunked(4).joinToString(" ").padEnd(19, '•')
             }
@@ -633,7 +657,7 @@ fun PhysicalCardPreview(
             ) {
                 Column {
                     Text(
-                        text = "KART SAHİBİ",
+                        text = stringResource(R.string.cardholder_label).uppercase(),
                         style = MaterialTheme.typography.labelSmall,
                         color = Color.White.copy(alpha = 0.5f),
                         fontSize = 9.sp
@@ -650,12 +674,14 @@ fun PhysicalCardPreview(
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = "SKT",
+                            text = stringResource(R.string.expiry_label).take(3).uppercase(),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White.copy(alpha = 0.5f),
                             fontSize = 9.sp
                         )
-                        val formattedExpiry = if (expiryDate.length >= 2) {
+                        val formattedExpiry = if (!isRevealed) {
+                            "••/••"
+                        } else if (expiryDate.length >= 2) {
                             "${expiryDate.take(2)}/${expiryDate.drop(2)}"
                         } else {
                             expiryDate.ifEmpty { "MM/YY" }
@@ -679,7 +705,7 @@ fun PhysicalCardPreview(
                                 fontSize = 9.sp
                             )
                             Text(
-                                text = cvv,
+                                text = if (isRevealed) cvv else "•••",
                                 style = MonospaceSecretStyle.copy(
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.SemiBold,

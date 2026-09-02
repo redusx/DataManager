@@ -116,7 +116,7 @@ class DebugDataSeederReceiver : BroadcastReceiver() {
                     listOf(
                         FieldItem("card_number", "4543123456789010", FieldType.CARD_NUMBER, true),
                         FieldItem("cardholder_name", "AHMET YILMAZ", FieldType.TEXT, false),
-                        FieldItem("expiry_date", "1228", FieldType.DATE, false),
+                        FieldItem("expiry_date", "1228", FieldType.DATE, true),
                         FieldItem("cvv", "428", FieldType.NUMBER, true),
                         FieldItem("bank_name", "Garanti BBVA", FieldType.TEXT, false)
                     )
@@ -131,7 +131,7 @@ class DebugDataSeederReceiver : BroadcastReceiver() {
                     listOf(
                         FieldItem("card_number", "5400987654321098", FieldType.CARD_NUMBER, true),
                         FieldItem("cardholder_name", "AHMET YILMAZ", FieldType.TEXT, false),
-                        FieldItem("expiry_date", "0827", FieldType.DATE, false),
+                        FieldItem("expiry_date", "0827", FieldType.DATE, true),
                         FieldItem("cvv", "753", FieldType.NUMBER, true),
                         FieldItem("bank_name", "Yapı Kredi", FieldType.TEXT, false)
                     )
@@ -147,7 +147,7 @@ class DebugDataSeederReceiver : BroadcastReceiver() {
                         FieldItem("bank_name", "Garanti BBVA", FieldType.TEXT, false),
                         FieldItem("account_holder", "Ahmet Yılmaz", FieldType.TEXT, false),
                         FieldItem("iban", "TR120006200000012345678901", FieldType.IBAN, true),
-                        FieldItem("account_number", "1234-5678901", FieldType.NUMBER, false)
+                        FieldItem("account_number", "1234-5678901", FieldType.NUMBER, true)
                     )
                 )
             ),
@@ -160,8 +160,8 @@ class DebugDataSeederReceiver : BroadcastReceiver() {
                     listOf(
                         FieldItem("id_number", "12345678901", FieldType.NUMBER, true),
                         FieldItem("full_name", "Ahmet Yılmaz", FieldType.TEXT, false),
-                        FieldItem("birth_date", "15.05.1992", FieldType.DATE, false),
-                        FieldItem("serial_number", "A12B34567", FieldType.TEXT, false)
+                        FieldItem("birth_date", "15.05.1992", FieldType.DATE, true),
+                        FieldItem("serial_number", "A12B34567", FieldType.TEXT, true)
                     )
                 )
             ),

@@ -35,12 +35,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.example.datamanager.R
 import com.example.datamanager.data.model.FieldItem
 import com.example.datamanager.data.model.FieldType
 import com.example.datamanager.ui.theme.MonospaceSecretStyle
@@ -57,6 +59,7 @@ fun IdentityTemplateEditor(
     modifier: Modifier = Modifier
 ) {
     var isIdRevealed by remember { mutableStateOf(false) }
+    var isSerialRevealed by remember { mutableStateOf(false) }
     var showAdditional by remember { mutableStateOf(false) }
 
     fun getFieldValue(key: String): String = fields.firstOrNull { it.key == key }?.value ?: ""
@@ -65,7 +68,7 @@ fun IdentityTemplateEditor(
         val list = fields.toMutableList()
         val index = list.indexOfFirst { it.key == key }
         if (index >= 0) {
-            list[index] = list[index].copy(value = value)
+            list[index] = list[index].copy(value = value, isSensitive = isSensitive)
         } else {
             list.add(FieldItem(key = key, value = value, type = type, isSensitive = isSensitive))
         }
@@ -79,7 +82,13 @@ fun IdentityTemplateEditor(
     val expiryDate = getFieldValue("expiry_date")
     val notes = getFieldValue("notes")
 
-    val docTypes = listOf("T.C. Kimlik", "Pasaport", "Sürücü Belgesi", "Diğer")
+    val docTypeItems = listOf(
+        R.string.doc_tc_kimlik,
+        R.string.doc_passport,
+        R.string.doc_driver_license,
+        R.string.doc_other
+    )
+    val docTypeNames = docTypeItems.map { stringResource(it) }
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -88,7 +97,7 @@ fun IdentityTemplateEditor(
         // Document Type Quick-Selector
         Column {
             Text(
-                text = "BELGE TÜRÜ",
+                text = stringResource(R.string.identity_doc_type),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold
@@ -98,30 +107,34 @@ fun IdentityTemplateEditor(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
             ) {
-                docTypes.forEach { type ->
-                    val isSelected = title.contains(type, ignoreCase = true) || (title.isEmpty() && type == "T.C. Kimlik")
+                docTypeNames.forEach { typeName ->
+                    val isSelected = title.contains(typeName, ignoreCase = true)
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .clip(ShapeTokens.ChipRadius)
-                            .background(if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer)
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                else MaterialTheme.colorScheme.surfaceContainer
+                            )
                             .border(
                                 width = 1.dp,
                                 color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
                                 shape = ShapeTokens.ChipRadius
                             )
                             .clickable {
-                                if (title.isEmpty() || docTypes.any { title.startsWith(it) }) {
-                                    onTitleChange("$type Kartım")
+                                if (title.isEmpty() || docTypeNames.contains(title)) {
+                                    onTitleChange(typeName)
                                 }
                             }
                             .padding(vertical = 8.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = type,
+                            text = typeName,
                             style = MaterialTheme.typography.labelSmall,
-                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
                         )
                     }
                 }
@@ -132,8 +145,8 @@ fun IdentityTemplateEditor(
         OutlinedTextField(
             value = title,
             onValueChange = onTitleChange,
-            label = { Text("Kimlik Başlığı / Tanımı") },
-            placeholder = { Text("örn. T.C. Kimlik Kartım, Pasaportum") },
+            label = { Text(stringResource(R.string.identity_title_label)) },
+            placeholder = { Text(stringResource(R.string.identity_title_placeholder)) },
             singleLine = true,
             isError = titleError,
             modifier = Modifier.fillMaxWidth(),
@@ -144,12 +157,12 @@ fun IdentityTemplateEditor(
             )
         )
 
-        // National ID / Passport Number
+        // National ID / Passport Number (Sensitive)
         OutlinedTextField(
             value = idNumber,
             onValueChange = { updateField("id_number", it, FieldType.NUMBER, isSensitive = true) },
-            label = { Text("T.C. Kimlik / Belge No") },
-            placeholder = { Text("11 haneli kimlik numarası") },
+            label = { Text(stringResource(R.string.identity_id_label)) },
+            placeholder = { Text(stringResource(R.string.identity_id_placeholder)) },
             singleLine = true,
             visualTransformation = if (isIdRevealed) VisualTransformation.None else PasswordVisualTransformation(),
             textStyle = if (!isIdRevealed) MonospaceSecretStyle else MaterialTheme.typography.bodyLarge,
@@ -158,7 +171,7 @@ fun IdentityTemplateEditor(
                 IconButton(onClick = { isIdRevealed = !isIdRevealed }) {
                     Icon(
                         imageVector = if (isIdRevealed) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
-                        contentDescription = if (isIdRevealed) "Gizle" else "Göster",
+                        contentDescription = if (isIdRevealed) stringResource(R.string.hide_value) else stringResource(R.string.reveal_value),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(18.dp)
                     )
@@ -172,11 +185,11 @@ fun IdentityTemplateEditor(
             )
         )
 
-        // Full Name
+        // Full Name (Not sensitive - name)
         OutlinedTextField(
             value = fullName,
-            onValueChange = { updateField("full_name", it, FieldType.TEXT) },
-            label = { Text("Ad Soyad") },
+            onValueChange = { updateField("full_name", it, FieldType.TEXT, isSensitive = false) },
+            label = { Text(stringResource(R.string.fullname_label)) },
             placeholder = { Text("Ahmet Yılmaz") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
@@ -188,16 +201,16 @@ fun IdentityTemplateEditor(
             )
         )
 
-        // Birth Date & Serial Number Side-by-Side
+        // Birth Date & Serial Number Side-by-Side (Both Sensitive)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(Spacing.s)
         ) {
             OutlinedTextField(
                 value = birthDate,
-                onValueChange = { updateField("birth_date", it, FieldType.DATE) },
-                label = { Text("Doğum Tarihi") },
-                placeholder = { Text("GG.AA.YYYY") },
+                onValueChange = { updateField("birth_date", it, FieldType.DATE, isSensitive = true) },
+                label = { Text(stringResource(R.string.birthdate_label)) },
+                placeholder = { Text("DD.MM.YYYY") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.weight(1f),
@@ -210,11 +223,22 @@ fun IdentityTemplateEditor(
 
             OutlinedTextField(
                 value = serialNumber,
-                onValueChange = { updateField("serial_number", it.uppercase(), FieldType.TEXT) },
-                label = { Text("Seri No") },
+                onValueChange = { updateField("serial_number", it.uppercase(), FieldType.TEXT, isSensitive = true) },
+                label = { Text(stringResource(R.string.serial_number_label)) },
                 placeholder = { Text("A12B34567") },
                 singleLine = true,
+                visualTransformation = if (isSerialRevealed) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
+                trailingIcon = {
+                    IconButton(onClick = { isSerialRevealed = !isSerialRevealed }) {
+                        Icon(
+                            imageVector = if (isSerialRevealed) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+                            contentDescription = if (isSerialRevealed) stringResource(R.string.hide_value) else stringResource(R.string.reveal_value),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                },
                 modifier = Modifier.weight(1f),
                 shape = ShapeTokens.InputRadius,
                 colors = OutlinedTextFieldDefaults.colors(
@@ -244,7 +268,7 @@ fun IdentityTemplateEditor(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = if (showAdditional) "Ek Bilgileri Gizle" else "＋ Ek Bilgiler Ekle (Son Geçerlilik, Not)",
+                    text = if (showAdditional) stringResource(R.string.hide_additional_info) else stringResource(R.string.add_identity_additional_info),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -268,9 +292,9 @@ fun IdentityTemplateEditor(
             ) {
                 OutlinedTextField(
                     value = expiryDate,
-                    onValueChange = { updateField("expiry_date", it, FieldType.DATE) },
-                    label = { Text("Son Geçerlilik Tarihi") },
-                    placeholder = { Text("GG.AA.YYYY") },
+                    onValueChange = { updateField("expiry_date", it, FieldType.DATE, isSensitive = true) },
+                    label = { Text(stringResource(R.string.identity_expiry_label)) },
+                    placeholder = { Text("DD.MM.YYYY") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
@@ -283,9 +307,9 @@ fun IdentityTemplateEditor(
 
                 OutlinedTextField(
                     value = notes,
-                    onValueChange = { updateField("notes", it, FieldType.MULTILINE) },
-                    label = { Text("Belge Notları") },
-                    placeholder = { Text("Veriliş yeri, kayıt detayları...") },
+                    onValueChange = { updateField("notes", it, FieldType.MULTILINE, isSensitive = false) },
+                    label = { Text(stringResource(R.string.identity_note_label)) },
+                    placeholder = { Text("") },
                     minLines = 2,
                     modifier = Modifier.fillMaxWidth(),
                     shape = ShapeTokens.InputRadius,

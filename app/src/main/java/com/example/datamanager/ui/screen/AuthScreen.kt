@@ -263,7 +263,7 @@ fun AuthScreen(
                         )
                         Spacer(modifier = Modifier.width(Spacing.xxs))
                         Text(
-                            text = "Şifremi Unuttum",
+                            text = stringResource(R.string.forgot_pin),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -295,7 +295,7 @@ fun AuthScreen(
                     .padding(bottom = Spacing.xxl)
             ) {
                 Text(
-                    text = "PIN Kurtarma & Sıfırlama",
+                    text = stringResource(R.string.pin_recovery_title),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold
@@ -304,7 +304,7 @@ fun AuthScreen(
                 Spacer(modifier = Modifier.height(Spacing.xxs))
 
                 Text(
-                    text = "Kasanıza erişim veya sıfırlama yönteminizi seçin.",
+                    text = stringResource(R.string.pin_recovery_subtitle),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -357,7 +357,7 @@ fun AuthScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = "Parmak İzi ile PIN Değiştir",
+                                    text = stringResource(R.string.option_biometric_title),
                                     style = MaterialTheme.typography.titleSmall,
                                     color = MaterialTheme.colorScheme.onSurface,
                                     fontWeight = FontWeight.SemiBold
@@ -370,7 +370,7 @@ fun AuthScreen(
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
                                     Text(
-                                        text = "Veriler Korunur",
+                                        text = stringResource(R.string.badge_data_kept),
                                         style = MaterialTheme.typography.labelSmall.copy(color = DarkSuccess)
                                     )
                                 }
@@ -378,9 +378,9 @@ fun AuthScreen(
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = if (isBiometricAvailable)
-                                    "Parmak izinizi doğrulayarak verileriniz silinmeden hemen yeni bir PIN belirleyin."
+                                    stringResource(R.string.option_biometric_desc)
                                 else
-                                    "Cihazınızda kayıtlı parmak izi bulunamadı.",
+                                    stringResource(R.string.option_biometric_not_available),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -438,7 +438,7 @@ fun AuthScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = "Tüm Verileri Sil ve Sıfırla",
+                                    text = stringResource(R.string.option_wipe_title),
                                     style = MaterialTheme.typography.titleSmall,
                                     color = MaterialTheme.colorScheme.error,
                                     fontWeight = FontWeight.SemiBold
@@ -451,14 +451,14 @@ fun AuthScreen(
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
                                     Text(
-                                        text = "Tüm Veriler Silinir",
+                                        text = stringResource(R.string.badge_data_wiped),
                                         style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.error)
                                     )
                                 }
                             }
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "PIN ve parmak izinizi hatırlamıyorsanız kullanılır. Yetkisiz sıfırlamaları önlemek için telefon kilit şifreniz istenir.",
+                                text = stringResource(R.string.option_wipe_desc),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -492,7 +492,7 @@ fun AuthScreen(
             },
             title = {
                 Text(
-                    text = "Kasayı Sıfırla",
+                    text = stringResource(R.string.reset_vault_title),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold
@@ -501,18 +501,18 @@ fun AuthScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                     Text(
-                        text = "PIN kodunuzu veya parmak izinizi hatırlamıyorsanız kasanızı sıfırlayabilirsiniz.",
+                        text = stringResource(R.string.reset_vault_desc_1),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "⚠️ DİKKAT: Kasanızdaki tüm kayıtlar ve şifreler kalıcı olarak silinecek ve yeni bir PIN oluşturulacaktır.",
+                        text = stringResource(R.string.reset_vault_desc_2),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.error,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = "Yetkisiz sıfırlamaları önlemek için telefonunuzun ekran kilit şifresi / deseni istenecektir.",
+                        text = stringResource(R.string.reset_vault_desc_3),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -523,22 +523,21 @@ fun AuthScreen(
                     onClick = {
                         showWipeConfirmDialog = false
                         onDeviceCredentialRequested(
-                            "Kasayı Sıfırlama Doğrulaması",
-                            "Tüm verileri silip kasayı sıfırlamak için telefon kilit şifrenizi girin.",
+                            context.getString(R.string.device_credential_prompt_title),
+                            context.getString(R.string.device_credential_prompt_desc),
                             {
                                 viewModel.wipeAndResetVault()
                             },
-                            { errorMsg ->
-                                Toast.makeText(context, "Doğrulama başarısız: $errorMsg", Toast.LENGTH_SHORT).show()
+                            {
+                                Toast.makeText(context, context.getString(R.string.verification_failed), Toast.LENGTH_SHORT).show()
                             }
                         )
                     },
-                    shape = ShapeTokens.ButtonRadius,
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                    shape = ShapeTokens.ButtonRadius
                 ) {
                     Text(
-                        text = "Telefon Şifresiyle Sıfırla",
-                        style = MaterialTheme.typography.labelLarge,
+                        text = stringResource(R.string.reset_with_phone_password),
                         color = MaterialTheme.colorScheme.onError
                     )
                 }

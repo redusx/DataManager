@@ -32,10 +32,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.datamanager.R
 import com.example.datamanager.data.model.FieldItem
 import com.example.datamanager.data.model.FieldType
 import com.example.datamanager.ui.theme.ShapeTokens
@@ -59,7 +61,7 @@ fun AddressTemplateEditor(
         val list = fields.toMutableList()
         val index = list.indexOfFirst { it.key == key }
         if (index >= 0) {
-            list[index] = list[index].copy(value = value)
+            list[index] = list[index].copy(value = value, isSensitive = isSensitive)
         } else {
             list.add(FieldItem(key = key, value = value, type = type, isSensitive = isSensitive))
         }
@@ -83,8 +85,8 @@ fun AddressTemplateEditor(
         OutlinedTextField(
             value = title,
             onValueChange = onTitleChange,
-            label = { Text("Adres Başlığı / Tanımı") },
-            placeholder = { Text("örn. Ev Adresim, İş / Ofis") },
+            label = { Text(stringResource(R.string.address_title_label)) },
+            placeholder = { Text(stringResource(R.string.address_title_placeholder)) },
             singleLine = true,
             isError = titleError,
             modifier = Modifier.fillMaxWidth(),
@@ -98,9 +100,9 @@ fun AddressTemplateEditor(
         // Open Street Address (Text Area)
         OutlinedTextField(
             value = address,
-            onValueChange = { updateField("address", it, FieldType.MULTILINE) },
-            label = { Text("Açık Adres (Cadde, Sokak, Bina No, Daire)") },
-            placeholder = { Text("Bağdat Cad. Nilüfer Sok. No:14 Daire:8") },
+            onValueChange = { updateField("address", it, FieldType.MULTILINE, isSensitive = false) },
+            label = { Text(stringResource(R.string.address_line_label)) },
+            placeholder = { Text("") },
             minLines = 3,
             modifier = Modifier.fillMaxWidth(),
             shape = ShapeTokens.InputRadius,
@@ -110,18 +112,17 @@ fun AddressTemplateEditor(
             )
         )
 
-        // City & District Side-by-Side
+        // Neighborhood & District Side-by-Side
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(Spacing.s)
         ) {
             OutlinedTextField(
-                value = city,
-                onValueChange = { updateField("city", it, FieldType.TEXT) },
-                label = { Text("İl / Şehir") },
-                placeholder = { Text("İstanbul") },
+                value = neighborhood,
+                onValueChange = { updateField("neighborhood", it, FieldType.TEXT, isSensitive = false) },
+                label = { Text(stringResource(R.string.neighborhood_label)) },
+                placeholder = { Text("") },
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
                 modifier = Modifier.weight(1f),
                 shape = ShapeTokens.InputRadius,
                 colors = OutlinedTextFieldDefaults.colors(
@@ -132,11 +133,10 @@ fun AddressTemplateEditor(
 
             OutlinedTextField(
                 value = district,
-                onValueChange = { updateField("district", it, FieldType.TEXT) },
-                label = { Text("İlçe") },
-                placeholder = { Text("Kadıköy") },
+                onValueChange = { updateField("district", it, FieldType.TEXT, isSensitive = false) },
+                label = { Text(stringResource(R.string.district_label)) },
+                placeholder = { Text("") },
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
                 modifier = Modifier.weight(1f),
                 shape = ShapeTokens.InputRadius,
                 colors = OutlinedTextFieldDefaults.colors(
@@ -146,19 +146,18 @@ fun AddressTemplateEditor(
             )
         }
 
-        // Neighborhood & Postal Code Side-by-Side
+        // City & Postal Code Side-by-Side
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(Spacing.s)
         ) {
             OutlinedTextField(
-                value = neighborhood,
-                onValueChange = { updateField("neighborhood", it, FieldType.TEXT) },
-                label = { Text("Mahalle / Semt") },
-                placeholder = { Text("Caddebostan Mah.") },
+                value = city,
+                onValueChange = { updateField("city", it, FieldType.TEXT, isSensitive = false) },
+                label = { Text(stringResource(R.string.city_label)) },
+                placeholder = { Text("") },
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1.2f),
                 shape = ShapeTokens.InputRadius,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -168,12 +167,12 @@ fun AddressTemplateEditor(
 
             OutlinedTextField(
                 value = postalCode,
-                onValueChange = { updateField("postal_code", it.filter { c -> c.isDigit() }, FieldType.NUMBER) },
-                label = { Text("Posta Kodu") },
-                placeholder = { Text("34728") },
+                onValueChange = { updateField("postal_code", it, FieldType.NUMBER, isSensitive = false) },
+                label = { Text(stringResource(R.string.postal_code_label)) },
+                placeholder = { Text("34000") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(0.8f),
                 shape = ShapeTokens.InputRadius,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -182,7 +181,7 @@ fun AddressTemplateEditor(
             )
         }
 
-        // Progressive Disclosure: Additional Contact Fields
+        // Progressive Disclosure: Additional Fields
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -202,7 +201,7 @@ fun AddressTemplateEditor(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = if (showAdditional) "İletişim Bilgilerini Gizle" else "＋ İletişim Bilgisi Ekle (Telefon, Alıcı İsmi)",
+                    text = if (showAdditional) stringResource(R.string.hide_additional_info) else stringResource(R.string.add_identity_additional_info),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -226,8 +225,8 @@ fun AddressTemplateEditor(
             ) {
                 OutlinedTextField(
                     value = recipientName,
-                    onValueChange = { updateField("recipient_name", it, FieldType.TEXT) },
-                    label = { Text("Alıcı / İlgili Kişi Adı") },
+                    onValueChange = { updateField("recipient_name", it, FieldType.TEXT, isSensitive = false) },
+                    label = { Text(stringResource(R.string.fullname_label)) },
                     placeholder = { Text("Ahmet Yılmaz") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
@@ -241,9 +240,9 @@ fun AddressTemplateEditor(
 
                 OutlinedTextField(
                     value = phone,
-                    onValueChange = { updateField("phone", it.filter { c -> c.isDigit() }, FieldType.PHONE) },
-                    label = { Text("Telefon Numarası") },
-                    placeholder = { Text("0 (5XX) XXX XX XX") },
+                    onValueChange = { updateField("phone", it, FieldType.NUMBER, isSensitive = false) },
+                    label = { Text(stringResource(R.string.field_phone)) },
+                    placeholder = { Text("05XX XXX XX XX") },
                     singleLine = true,
                     visualTransformation = PhoneNumberVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
@@ -257,9 +256,9 @@ fun AddressTemplateEditor(
 
                 OutlinedTextField(
                     value = notes,
-                    onValueChange = { updateField("notes", it, FieldType.MULTILINE) },
-                    label = { Text("Teslimat / Adres Tarifi Notu") },
-                    placeholder = { Text("Kapı kodu, kurye talimatı...") },
+                    onValueChange = { updateField("notes", it, FieldType.MULTILINE, isSensitive = false) },
+                    label = { Text(stringResource(R.string.address_note_label)) },
+                    placeholder = { Text("") },
                     minLines = 2,
                     modifier = Modifier.fillMaxWidth(),
                     shape = ShapeTokens.InputRadius,

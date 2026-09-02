@@ -54,6 +54,7 @@ import com.example.datamanager.R
 import com.example.datamanager.data.model.Category
 import com.example.datamanager.data.model.FieldItem
 import com.example.datamanager.data.model.TemplateType
+import com.example.datamanager.data.model.isEffectivelySensitive
 import com.example.datamanager.ui.component.CopyButton
 import com.example.datamanager.ui.component.SensitiveField
 import com.example.datamanager.ui.component.getEntryVisuals
@@ -62,7 +63,7 @@ import com.example.datamanager.ui.theme.ShapeTokens
 import com.example.datamanager.ui.theme.Spacing
 import com.example.datamanager.ui.viewmodel.EntryViewModel
 import com.example.datamanager.util.ClipboardHelper
-import com.example.datamanager.util.FieldFormatter.formatFieldLabel
+import com.example.datamanager.util.FieldFormatter
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -177,7 +178,7 @@ fun EntryDetailScreen(
                         Spacer(modifier = Modifier.width(Spacing.xs))
 
                         Text(
-                            text = templateType.title,
+                            text = stringResource(templateType.titleRes),
                             style = MaterialTheme.typography.labelMedium,
                             color = categoryTint
                         )
@@ -191,12 +192,14 @@ fun EntryDetailScreen(
                         val expiryDate = getFieldValue("expiry_date")
                         val cvv = getFieldValue("cvv")
                         val cardHolder = getFieldValue("card_holder")
-                        val cardBrand = when {
-                            cardNumber.startsWith("4") -> "VISA"
-                            cardNumber.startsWith("5") || cardNumber.startsWith("2") -> "MASTERCARD"
-                            cardNumber.startsWith("9792") -> "TROY"
-                            cardNumber.startsWith("34") || cardNumber.startsWith("37") -> "AMEX"
-                            else -> "KART"
+                        val cardBrand = remember(cardNumber) {
+                            when {
+                                cardNumber.startsWith("4") -> "VISA"
+                                cardNumber.startsWith("5") || cardNumber.startsWith("2") -> "MASTERCARD"
+                                cardNumber.startsWith("9792") -> "TROY"
+                                cardNumber.startsWith("34") || cardNumber.startsWith("37") -> "AMEX"
+                                else -> "KART"
+                            }
                         }
 
                         PhysicalCardPreview(
@@ -218,20 +221,21 @@ fun EntryDetailScreen(
                     ) {
                         fields.forEach { field ->
                             if (field.value.isNotEmpty()) {
-                                val readableLabel = formatFieldLabel(field.key)
+                                val readableLabel = FieldFormatter.formatFieldLabel(context, field.key)
+                                val isSensitive = field.isEffectivelySensitive(entry.category)
                                 SensitiveField(
                                     label = readableLabel,
                                     value = field.value,
-                                    isSensitive = field.isSensitive,
+                                    isSensitive = isSensitive,
                                     onCopy = { secret ->
                                         ClipboardHelper.copyToClipboard(
                                             context = context,
                                             label = readableLabel,
                                             text = secret,
-                                            isSensitive = field.isSensitive
+                                            isSensitive = isSensitive
                                         )
                                         scope.launch {
-                                            snackbarHostState.showSnackbar("$readableLabel kopyalandı")
+                                            snackbarHostState.showSnackbar(context.getString(R.string.copied_item, readableLabel))
                                         }
                                     }
                                 )

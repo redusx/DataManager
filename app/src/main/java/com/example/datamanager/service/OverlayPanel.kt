@@ -74,6 +74,7 @@ import com.example.datamanager.data.model.Category
 import com.example.datamanager.data.model.DataEntry
 import com.example.datamanager.data.model.FieldItem
 import com.example.datamanager.data.model.TemplateType
+import com.example.datamanager.data.model.isEffectivelySensitive
 import com.example.datamanager.ui.component.CopyButton
 import com.example.datamanager.ui.theme.CategoryCardsTint
 import com.example.datamanager.ui.theme.CategoryIdentityTint
@@ -83,6 +84,7 @@ import com.example.datamanager.ui.theme.MonospaceSecretStyle
 import com.example.datamanager.ui.theme.ShapeTokens
 import com.example.datamanager.ui.theme.Spacing
 import com.example.datamanager.util.ClipboardHelper
+import com.example.datamanager.util.FieldFormatter
 import com.example.datamanager.util.FieldFormatter.formatFieldLabel
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -199,7 +201,7 @@ fun OverlayPanel(
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Close,
-                            contentDescription = "Yüzen Erişimi Kapat",
+                            contentDescription = stringResource(R.string.overlay_close),
                             tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(18.dp)
                         )
@@ -389,7 +391,7 @@ fun OverlayPanel(
                             ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                                    contentDescription = "Geri",
+                                    contentDescription = stringResource(R.string.overlay_back),
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -434,7 +436,7 @@ fun OverlayPanel(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "Bu kayıtta alan bulunamadı.",
+                                    text = stringResource(R.string.no_fields_in_entry),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -448,18 +450,19 @@ fun OverlayPanel(
                             ) {
                                 items(fields) { field ->
                                     if (field.key.isNotBlank() && field.value.isNotBlank()) {
+                                        val isSensitive = field.isEffectivelySensitive(currentEntry.category)
+                                        val readableLabel = FieldFormatter.formatFieldLabel(context, field.key)
                                         OverlayEntryFieldRow(
                                             field = field,
+                                            category = currentEntry.category,
                                             entryTitle = currentEntry.title,
                                             onCopy = {
-                                                val readableLabel = formatFieldLabel(field.key)
                                                 ClipboardHelper.copyToClipboard(
                                                     context = context,
                                                     label = readableLabel,
                                                     text = field.value,
-                                                    isSensitive = field.isSensitive
+                                                    isSensitive = isSensitive
                                                 )
-
                                                 Toast.makeText(
                                                     context,
                                                     context.getString(R.string.copied_item, readableLabel),
@@ -572,11 +575,14 @@ private fun OverlayEntryCard(
 @Composable
 private fun OverlayEntryFieldRow(
     field: FieldItem,
+    category: String,
     entryTitle: String,
     onCopy: () -> Unit
 ) {
-    var isRevealed by remember { mutableStateOf(!field.isSensitive) }
-    val readableLabel = formatFieldLabel(field.key)
+    val isSensitive = field.isEffectivelySensitive(category)
+    var isRevealed by remember { mutableStateOf(!isSensitive) }
+    val context = LocalContext.current
+    val readableLabel = FieldFormatter.formatFieldLabel(context, field.key)
 
     Box(
         modifier = Modifier
@@ -603,22 +609,22 @@ private fun OverlayEntryFieldRow(
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = if (field.isSensitive && !isRevealed) "••••••••••••" else field.value,
-                    style = if (field.isSensitive && !isRevealed) MonospaceSecretStyle.copy(fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
+                    text = if (isSensitive && !isRevealed) "••••••••••••" else field.value,
+                    style = if (isSensitive && !isRevealed) MonospaceSecretStyle.copy(fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
                     else MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
             }
 
-            if (field.isSensitive) {
+            if (isSensitive) {
                 IconButton(
                     onClick = { isRevealed = !isRevealed },
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
                         imageVector = if (isRevealed) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
-                        contentDescription = null,
+                        contentDescription = if (isRevealed) stringResource(R.string.hide_value) else stringResource(R.string.reveal_value),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(18.dp)
                     )
@@ -627,7 +633,7 @@ private fun OverlayEntryFieldRow(
 
             CopyButton(
                 onClick = onCopy,
-                contentDescription = "$entryTitle $readableLabel kopyala"
+                contentDescription = "$entryTitle $readableLabel"
             )
         }
     }

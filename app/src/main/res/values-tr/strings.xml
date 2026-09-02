@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">DataManager</string>
+    <string name="app_name">MyVault</string>
 
     <!-- Auth -->
     <string name="setup_pin">PIN kodunuzu oluşturun</string>
@@ -10,6 +10,31 @@
     <string name="setup_failed">Kurulum başarısız. Tekrar deneyin.</string>
     <string name="locked_out">Çok fazla deneme. Lütfen bekleyin.</string>
     <string name="error_generic">Bir hata oluştu.</string>
+    <string name="forgot_pin">Şifremi Unuttum</string>
+    <string name="setup_new_pin_instruction">Yeni 6 Haneli PIN Belirleyin</string>
+    <string name="biometric_verified_msg">Parmak iziniz doğrulandı. Lütfen yeni 6 haneli PIN kodunuzu belirleyin.</string>
+    <string name="vault_wiped_msg">Kasa sıfırlandı. Lütfen yeni bir PIN oluşturun.</string>
+    <string name="biometric_reset_prompt_title">PIN Sıfırlama Doğrulaması</string>
+    <string name="biometric_reset_prompt_desc">Verilerinizi silmeden yeni bir PIN belirlemek için parmak izinizi doğrulayın.</string>
+    <string name="device_credential_prompt_title">Kasayı Sıfırlama Doğrulaması</string>
+    <string name="device_credential_prompt_desc">Tüm verileri silip kasayı sıfırlamak için telefon kilit şifrenizi girin.</string>
+    <string name="verification_failed">Doğrulama başarısız</string>
+
+    <!-- Recovery Sheet & Dialog -->
+    <string name="pin_recovery_title">PIN Kurtarma &amp; Sıfırlama</string>
+    <string name="pin_recovery_subtitle">Kasanıza erişim veya sıfırlama yöntemini seçin.</string>
+    <string name="option_biometric_title">Parmak İzi ile PIN Değiştir</string>
+    <string name="badge_data_kept">Veriler Korunur</string>
+    <string name="option_biometric_desc">Parmak izinizi doğrulayarak verileriniz silinmeden hemen yeni bir PIN belirleyin.</string>
+    <string name="option_biometric_not_available">Cihazınızda kayıtlı parmak izi bulunamadı.</string>
+    <string name="option_wipe_title">Tüm Verileri Sil ve Sıfırla</string>
+    <string name="badge_data_wiped">Tüm Veriler Silinir</string>
+    <string name="option_wipe_desc">PIN ve parmak izinizi hatırlamıyorsanız kullanılır. Yetkisiz sıfırlamaları önlemek için telefon kilit şifreniz istenir.</string>
+    <string name="reset_vault_title">Kasayı Sıfırla</string>
+    <string name="reset_vault_desc_1">PIN kodunuzu veya parmak izinizi hatırlamıyorsanız kasanızı sıfırlayabilirsiniz.</string>
+    <string name="reset_vault_desc_2">⚠️ DİKKAT: Kasanızdaki tüm kayıtlar ve şifreler kalıcı olarak silinecek ve yeni bir PIN oluşturulacaktır.</string>
+    <string name="reset_vault_desc_3">Yetkisiz sıfırlamaları önlemek için telefonunuzun ekran kilit şifresi / deseni istenecektir.</string>
+    <string name="reset_with_phone_password">Telefon Şifresiyle Sıfırla</string>
 
     <!-- Home -->
     <string name="welcome_title">Kasanız</string>
@@ -47,12 +72,101 @@
     <string name="delete_entry_confirm">Bu kaydı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.</string>
     <string name="copied">Panoya kopyalandı!</string>
     <string name="no_entries">Henüz kayıt yok.</string>
+    <string name="reveal_value">Göster</string>
+    <string name="hide_value">Gizle</string>
 
-    <!-- Templates -->
-    <string name="template_personal">Kişisel Bilgiler</string>
-    <string name="template_credit_card">Kredi Kartı</string>
-    <string name="template_bank_account">Banka Hesabı</string>
-    <string name="template_login">Giriş Hesabı</string>
+    <!-- Templates & Formatter -->
+    <string name="select_record_type">Kayıt Türü Seçin</string>
+    <string name="select_record_type_desc">Kasanıza eklemek istediğiniz bilgiye uygun hazır şablonu seçin.</string>
+    <string name="template_login_title">Giriş &amp; Hesap</string>
+    <string name="template_login_desc">Web sitesi, uygulama hesapları ve şifreler</string>
+    <string name="template_card_title">Banka &amp; Kart Bilgileri</string>
+    <string name="template_card_desc">Kredi kartı, banka kartı, IBAN ve hesap bilgileri</string>
+    <string name="template_identity_title">Kimlik Belgesi</string>
+    <string name="template_identity_desc">T.C. Kimlik, Pasaport, Ehliyet</string>
+    <string name="template_address_title">Adres &amp; İletişim</string>
+    <string name="template_address_desc">Ev, iş adresi ve teslimat bilgileri</string>
+    <string name="template_note_title">Güvenli Not</string>
+    <string name="template_note_desc">Kurtarma kodları, Wi-Fi ve özel notlar</string>
+    <string name="template_custom_title">Özel Kayıt</string>
+    <string name="template_custom_desc">Serbest alan tanımlı özel kayıt</string>
+
+    <!-- Form & Field Labels -->
+    <string name="subtab_card">Kredi / Banka Kartı</string>
+    <string name="subtab_bank_account">Banka Hesabı / IBAN</string>
+    <string name="card_title_label">Kart Başlığı / Takma Ad</string>
+    <string name="card_title_placeholder">örn. Garanti Bonus, Maaş Kartı</string>
+    <string name="card_number_label">Kart Numarası</string>
+    <string name="expiry_label">Son Kullanma (AA/YY)</string>
+    <string name="cvv_label">CVV / CVC</string>
+    <string name="cardholder_label">Kart Üzerindeki İsim</string>
+    <string name="hide_additional_info">Ek Bilgileri Gizle</string>
+    <string name="add_card_additional_info">＋ Ek Bilgiler Ekle (Banka, IBAN, Not)</string>
+    <string name="add_account_additional_info">＋ Ek Bilgiler Ekle (Hesap No, Şube Kodu)</string>
+    <string name="add_identity_additional_info">＋ Ek Bilgiler Ekle (Geçerlilik, Not)</string>
+    <string name="bank_name_label">Banka Adı</string>
+    <string name="bank_name_placeholder">örn. Garanti BBVA, Akbank, İş Bankası</string>
+    <string name="linked_iban_label">Bağlı IBAN Numarası</string>
+    <string name="card_note_label">Kart Notu / Açıklama</string>
+    <string name="account_title_label">Hesap Tanımı / Başlık</string>
+    <string name="account_title_placeholder">örn. İş Bankası Maaş Hesabım</string>
+    <string name="account_holder_label">Hesap Sahibi</string>
+    <string name="branch_code_label">Şube Kodu</string>
+    <string name="account_number_label">Hesap No</string>
+    <string name="account_note_label">Hesap Notu / Açıklama</string>
+
+    <!-- Login Template -->
+    <string name="login_select_service">Servis / Hesap Seçin (İsteğe Bağlı)</string>
+    <string name="login_account_info">HESAP BİLGİLERİ</string>
+    <string name="login_title_label">Hesap Başlığı</string>
+    <string name="login_title_placeholder">örn. Kişisel Google, Şirket GitHub</string>
+    <string name="login_username_label">Kullanıcı Adı / E-posta</string>
+    <string name="login_password_label">Şifre</string>
+    <string name="generate_password">Şifre Üret</string>
+    <string name="pass_very_weak">Çok Zayıf</string>
+    <string name="pass_weak">Zayıf</string>
+    <string name="pass_medium">Orta</string>
+    <string name="pass_strong">Güçlü</string>
+    <string name="pass_very_strong">Çok Güçlü</string>
+    <string name="login_website_label">Web Sitesi / Giriş URL</string>
+    <string name="add_note_action">＋ Ek Not Ekle</string>
+    <string name="hide_note_action">Ek Not Gizle</string>
+    <string name="login_note_label">Hesap Notu</string>
+
+    <!-- Identity Template -->
+    <string name="identity_doc_type">BELGE TÜRÜ</string>
+    <string name="doc_tc_kimlik">T.C. Kimlik</string>
+    <string name="doc_passport">Pasaport</string>
+    <string name="doc_driver_license">Sürücü Belgesi</string>
+    <string name="doc_other">Diğer</string>
+    <string name="identity_title_label">Kimlik Başlığı / Tanımı</string>
+    <string name="identity_title_placeholder">örn. T.C. Kimlik Kartım, Pasaportum</string>
+    <string name="identity_id_label">T.C. Kimlik / Belge No</string>
+    <string name="identity_id_placeholder">11 haneli kimlik numarası</string>
+    <string name="fullname_label">Ad Soyad</string>
+    <string name="birthdate_label">Doğum Tarihi</string>
+    <string name="serial_number_label">Seri No</string>
+    <string name="identity_expiry_label">Son Geçerlilik Tarihi</string>
+    <string name="identity_note_label">Kimlik Notu</string>
+
+    <!-- Address Template -->
+    <string name="address_info_header">ADRES BİLGİLERİ</string>
+    <string name="address_title_label">Adres Başlığı</string>
+    <string name="address_title_placeholder">örn. Ev Adresim, Şirket Ofisi</string>
+    <string name="address_line_label">Açık Adres</string>
+    <string name="neighborhood_label">Mahalle / Semt</string>
+    <string name="district_label">İlçe</string>
+    <string name="city_label">Şehir / İl</string>
+    <string name="postal_code_label">Posta Kodu</string>
+    <string name="country_label">Ülke</string>
+    <string name="address_note_label">Adres Notu</string>
+
+    <!-- Secure Note Template -->
+    <string name="note_details_header">NOT DETAYLARI</string>
+    <string name="note_title_label">Not Başlığı</string>
+    <string name="note_title_placeholder">örn. Ev Wi-Fi, Sunucu SSH Anahtarı</string>
+    <string name="note_content_label">Güvenli Not İçeriği</string>
+    <string name="monospace_font_toggle">Sabit Genişlikli Yazı Tipi (Monospace)</string>
 
     <!-- Settings -->
     <string name="settings">Ayarlar</string>
@@ -74,7 +188,7 @@
     <!-- Overlay -->
     <string name="overlay_channel_name">Hızlı Erişim</string>
     <string name="overlay_channel_desc">Verilerinize hızlı erişim için yüzen buton.</string>
-    <string name="overlay_notification_title">DataManager Aktif</string>
+    <string name="overlay_notification_title">MyVault Aktif</string>
     <string name="overlay_notification_text">Açmak için dokunun. Butonu sürükleyerek taşıyın.</string>
     <string name="overlay_quick_access">Yüzen Buton (Sürekli Açık)</string>
     <string name="overlay_quick_access_desc">Uygulama arka plandan tamamen kapatılsa bile yüzen butonu ekranda açık tut</string>
@@ -84,6 +198,9 @@
     <string name="start_floating_button_desc">Uygulamayı arka plana atıp yüzen butonu açar (Uygulama kapatılana kadar aktif kalır)</string>
     <string name="open_app">Uygulamayı Aç</string>
     <string name="minimize">Küçült</string>
+    <string name="overlay_close">Yüzen Erişimi Kapat</string>
+    <string name="overlay_back">Geri</string>
+    <string name="no_fields_in_entry">Bu kayıtta alan bulunamadı.</string>
     <string name="all">Tümü</string>
     <string name="copied_item">%1$s panoya kopyalandı</string>
 
@@ -94,4 +211,33 @@
     <string name="biometric_not_available">Bu cihazda parmak izi doğrulama kullanılamıyor.</string>
     <string name="biometric_none_enrolled">Kayıtlı parmak izi bulunamadı. Lütfen cihaz ayarlarından parmak izi ekleyin.</string>
     <string name="biometric_no_hardware">Bu cihazda parmak izi donanımı bulunmuyor.</string>
+
+    <!-- Dynamic Field Formatter Labels -->
+    <string name="field_username">Kullanıcı Adı</string>
+    <string name="field_password">Şifre</string>
+    <string name="field_email">E-Posta</string>
+    <string name="field_website">Web Sitesi / URL</string>
+    <string name="field_card_holder">Kart Üzerindeki İsim</string>
+    <string name="field_card_number">Kart Numarası</string>
+    <string name="field_expiry_date">Son Kullanma Tarihi</string>
+    <string name="field_cvv">CVV / Güvenlik Kodu</string>
+    <string name="field_iban">IBAN</string>
+    <string name="field_bank_name">Banka Adı</string>
+    <string name="field_account_holder">Hesap Sahibi</string>
+    <string name="field_account_number">Hesap Numarası</string>
+    <string name="field_branch_code">Şube Kodu</string>
+    <string name="field_first_name">Ad</string>
+    <string name="field_last_name">Soyad</string>
+    <string name="field_id_number">T.C. Kimlik / Belge No</string>
+    <string name="field_serial_number">Seri No</string>
+    <string name="field_birth_date">Doğum Tarihi</string>
+    <string name="field_phone">Telefon</string>
+    <string name="field_address">Adres</string>
+    <string name="field_neighborhood">Mahalle / Semt</string>
+    <string name="field_district">İlçe</string>
+    <string name="field_city">Şehir / İl</string>
+    <string name="field_postal_code">Posta Kodu</string>
+    <string name="field_country">Ülke</string>
+    <string name="field_note_content">Not İçeriği</string>
+    <string name="field_notes">Notlar</string>
 </resources>

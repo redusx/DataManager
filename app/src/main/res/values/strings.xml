@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">DataManager</string>
+    <string name="app_name">MyVault</string>
 
     <!-- Auth -->
     <string name="setup_pin">Create your PIN code</string>
@@ -10,6 +10,31 @@
     <string name="setup_failed">Setup failed. Try again.</string>
     <string name="locked_out">Too many attempts. Please wait.</string>
     <string name="error_generic">An error occurred.</string>
+    <string name="forgot_pin">Forgot PIN?</string>
+    <string name="setup_new_pin_instruction">Choose a New 6-Digit PIN</string>
+    <string name="biometric_verified_msg">Fingerprint verified. Please set your new 6-digit PIN.</string>
+    <string name="vault_wiped_msg">Vault has been reset. Please create a new PIN.</string>
+    <string name="biometric_reset_prompt_title">PIN Reset Verification</string>
+    <string name="biometric_reset_prompt_desc">Verify fingerprint to set a new PIN without deleting data.</string>
+    <string name="device_credential_prompt_title">Vault Reset Verification</string>
+    <string name="device_credential_prompt_desc">Enter your phone lock credentials to erase all data and reset vault.</string>
+    <string name="verification_failed">Verification failed</string>
+
+    <!-- Recovery Sheet & Dialog -->
+    <string name="pin_recovery_title">PIN Recovery &amp; Reset</string>
+    <string name="pin_recovery_subtitle">Choose how to access or reset your vault.</string>
+    <string name="option_biometric_title">Change PIN with Fingerprint</string>
+    <string name="badge_data_kept">Data Preserved</string>
+    <string name="option_biometric_desc">Verify fingerprint to create a new PIN without losing your data.</string>
+    <string name="option_biometric_not_available">No fingerprint enrolled on this device.</string>
+    <string name="option_wipe_title">Wipe All Data &amp; Reset</string>
+    <string name="badge_data_wiped">All Data Erased</string>
+    <string name="option_wipe_desc">Used if PIN and fingerprint are unavailable. Device lock password will be requested.</string>
+    <string name="reset_vault_title">Reset Vault</string>
+    <string name="reset_vault_desc_1">If you forgot your PIN and cannot authenticate, you can reset your vault.</string>
+    <string name="reset_vault_desc_2">⚠️ CAUTION: All saved records and passwords will be permanently deleted and a new PIN will be required.</string>
+    <string name="reset_vault_desc_3">To prevent unauthorized resets, your phone lock password/pattern will be required.</string>
+    <string name="reset_with_phone_password">Reset with Phone Password</string>
 
     <!-- Home -->
     <string name="welcome_title">Your Vault</string>
@@ -47,12 +72,101 @@
     <string name="delete_entry_confirm">Are you sure you want to delete this entry? This action cannot be undone.</string>
     <string name="copied">Copied to clipboard!</string>
     <string name="no_entries">No entries yet.</string>
+    <string name="reveal_value">Show</string>
+    <string name="hide_value">Hide</string>
 
-    <!-- Templates -->
-    <string name="template_personal">Personal Info</string>
-    <string name="template_credit_card">Credit Card</string>
-    <string name="template_bank_account">Bank Account</string>
-    <string name="template_login">Login Account</string>
+    <!-- Templates & Formatter -->
+    <string name="select_record_type">Select Record Type</string>
+    <string name="select_record_type_desc">Choose a template matching the information you want to add.</string>
+    <string name="template_login_title">Logins &amp; Accounts</string>
+    <string name="template_login_desc">Website and app accounts, usernames and passwords</string>
+    <string name="template_card_title">Bank &amp; Card Details</string>
+    <string name="template_card_desc">Credit cards, debit cards, IBAN and account info</string>
+    <string name="template_identity_title">Identity Document</string>
+    <string name="template_identity_desc">National ID, passport, driver\'s license</string>
+    <string name="template_address_title">Address &amp; Contact</string>
+    <string name="template_address_desc">Home, work address and delivery info</string>
+    <string name="template_note_title">Secure Note</string>
+    <string name="template_note_desc">Recovery codes, Wi-Fi keys and secret notes</string>
+    <string name="template_custom_title">Custom Record</string>
+    <string name="template_custom_desc">Custom fields and entries</string>
+
+    <!-- Form & Field Labels -->
+    <string name="subtab_card">Credit / Debit Card</string>
+    <string name="subtab_bank_account">Bank Account / IBAN</string>
+    <string name="card_title_label">Card Title / Nickname</string>
+    <string name="card_title_placeholder">e.g. Salary Card, Bonus Card</string>
+    <string name="card_number_label">Card Number</string>
+    <string name="expiry_label">Expiry (MM/YY)</string>
+    <string name="cvv_label">CVV / CVC</string>
+    <string name="cardholder_label">Name on Card</string>
+    <string name="hide_additional_info">Hide Additional Info</string>
+    <string name="add_card_additional_info">＋ Add Additional Info (Bank, IBAN, Note)</string>
+    <string name="add_account_additional_info">＋ Add Additional Info (Account No, Branch Code)</string>
+    <string name="add_identity_additional_info">＋ Add Additional Info (Expiry Date, Note)</string>
+    <string name="bank_name_label">Bank Name</string>
+    <string name="bank_name_placeholder">e.g. Chase, Garanti BBVA, HSBC</string>
+    <string name="linked_iban_label">Linked IBAN</string>
+    <string name="card_note_label">Card Note / Description</string>
+    <string name="account_title_label">Account Title / Label</string>
+    <string name="account_title_placeholder">e.g. Primary Checking Account</string>
+    <string name="account_holder_label">Account Holder</string>
+    <string name="branch_code_label">Branch Code</string>
+    <string name="account_number_label">Account Number</string>
+    <string name="account_note_label">Account Note / Description</string>
+
+    <!-- Login Template -->
+    <string name="login_select_service">Select Service / Account (Optional)</string>
+    <string name="login_account_info">ACCOUNT DETAILS</string>
+    <string name="login_title_label">Account Title</string>
+    <string name="login_title_placeholder">e.g. Personal Google, Work GitHub</string>
+    <string name="login_username_label">Username / Email</string>
+    <string name="login_password_label">Password</string>
+    <string name="generate_password">Generate Password</string>
+    <string name="pass_very_weak">Very Weak</string>
+    <string name="pass_weak">Weak</string>
+    <string name="pass_medium">Medium</string>
+    <string name="pass_strong">Strong</string>
+    <string name="pass_very_strong">Very Strong</string>
+    <string name="login_website_label">Website / Login URL</string>
+    <string name="add_note_action">＋ Add Note</string>
+    <string name="hide_note_action">Hide Note</string>
+    <string name="login_note_label">Account Note</string>
+
+    <!-- Identity Template -->
+    <string name="identity_doc_type">DOCUMENT TYPE</string>
+    <string name="doc_tc_kimlik">National ID</string>
+    <string name="doc_passport">Passport</string>
+    <string name="doc_driver_license">Driver\'s License</string>
+    <string name="doc_other">Other</string>
+    <string name="identity_title_label">Identity Title / Label</string>
+    <string name="identity_title_placeholder">e.g. My ID Card, Passport</string>
+    <string name="identity_id_label">ID / Document Number</string>
+    <string name="identity_id_placeholder">Identification number</string>
+    <string name="fullname_label">Full Name</string>
+    <string name="birthdate_label">Birth Date</string>
+    <string name="serial_number_label">Serial Number</string>
+    <string name="identity_expiry_label">Expiry Date</string>
+    <string name="identity_note_label">Identity Note</string>
+
+    <!-- Address Template -->
+    <string name="address_info_header">ADDRESS DETAILS</string>
+    <string name="address_title_label">Address Title</string>
+    <string name="address_title_placeholder">e.g. Home Address, Work Office</string>
+    <string name="address_line_label">Street Address</string>
+    <string name="neighborhood_label">Neighborhood / Area</string>
+    <string name="district_label">District</string>
+    <string name="city_label">City / Province</string>
+    <string name="postal_code_label">Postal Code</string>
+    <string name="country_label">Country</string>
+    <string name="address_note_label">Address Note</string>
+
+    <!-- Secure Note Template -->
+    <string name="note_details_header">NOTE DETAILS</string>
+    <string name="note_title_label">Note Title</string>
+    <string name="note_title_placeholder">e.g. Home Wi-Fi, Server SSH Key</string>
+    <string name="note_content_label">Secure Note Content</string>
+    <string name="monospace_font_toggle">Monospace Font</string>
 
     <!-- Settings -->
     <string name="settings">Settings</string>
@@ -74,16 +188,19 @@
     <!-- Overlay -->
     <string name="overlay_channel_name">Quick Access</string>
     <string name="overlay_channel_desc">Floating button for quick access to your data.</string>
-    <string name="overlay_notification_title">DataManager Active</string>
+    <string name="overlay_notification_title">MyVault Active</string>
     <string name="overlay_notification_text">Tap to open. Drag the button to move.</string>
     <string name="overlay_quick_access">Floating Button (Always Active)</string>
     <string name="overlay_quick_access_desc">Keep the floating button active on screen even when the app is closed</string>
-    <string name="overlay_permission_required">Overlay permission is required</string>
+    <string name="overlay_permission_required">Overlay Permission Required</string>
     <string name="overlay_permission_desc">Please grant permission to display over other apps in system settings.</string>
     <string name="start_floating_button">Floating Quick Access</string>
-    <string name="start_floating_button_desc">Minimizes app and opens floating button (stays active until app is closed)</string>
+    <string name="start_floating_button_desc">Minimizes app and opens floating button (stays active until closed)</string>
     <string name="open_app">Open App</string>
     <string name="minimize">Minimize</string>
+    <string name="overlay_close">Close Quick Access</string>
+    <string name="overlay_back">Back</string>
+    <string name="no_fields_in_entry">No fields found in this record.</string>
     <string name="all">All</string>
     <string name="copied_item">Copied: %1$s</string>
 
@@ -94,4 +211,33 @@
     <string name="biometric_not_available">Fingerprint authentication is not available on this device.</string>
     <string name="biometric_none_enrolled">No fingerprints enrolled. Please add a fingerprint in device settings.</string>
     <string name="biometric_no_hardware">This device does not have a fingerprint sensor.</string>
+
+    <!-- Dynamic Field Formatter Labels -->
+    <string name="field_username">Username</string>
+    <string name="field_password">Password</string>
+    <string name="field_email">Email</string>
+    <string name="field_website">Website / URL</string>
+    <string name="field_card_holder">Name on Card</string>
+    <string name="field_card_number">Card Number</string>
+    <string name="field_expiry_date">Expiry Date</string>
+    <string name="field_cvv">CVV / CVC</string>
+    <string name="field_iban">IBAN</string>
+    <string name="field_bank_name">Bank Name</string>
+    <string name="field_account_holder">Account Holder</string>
+    <string name="field_account_number">Account Number</string>
+    <string name="field_branch_code">Branch Code</string>
+    <string name="field_first_name">First Name</string>
+    <string name="field_last_name">Last Name</string>
+    <string name="field_id_number">ID / Document Number</string>
+    <string name="field_serial_number">Serial Number</string>
+    <string name="field_birth_date">Birth Date</string>
+    <string name="field_phone">Phone</string>
+    <string name="field_address">Address</string>
+    <string name="field_neighborhood">Neighborhood</string>
+    <string name="field_district">District</string>
+    <string name="field_city">City</string>
+    <string name="field_postal_code">Postal Code</string>
+    <string name="field_country">Country</string>
+    <string name="field_note_content">Note Content</string>
+    <string name="field_notes">Notes</string>
 </resources>
