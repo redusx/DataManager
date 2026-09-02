@@ -5,9 +5,11 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -246,7 +248,9 @@ fun EntryDetailScreen(
 
                             if (hasExpiry && hasCvv) {
                                 Row(
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(IntrinsicSize.Min),
                                     horizontalArrangement = Arrangement.spacedBy(Spacing.s)
                                 ) {
                                     val expLabel = stringResource(R.string.field_expiry_compact)
@@ -262,7 +266,9 @@ fun EntryDetailScreen(
                                                 snackbarHostState.showSnackbar(context.getString(R.string.copied_item, expLabel))
                                             }
                                         },
-                                        modifier = Modifier.weight(1f)
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .fillMaxHeight()
                                     )
 
                                     val cvvLabel = stringResource(R.string.field_cvv_compact)
@@ -278,7 +284,9 @@ fun EntryDetailScreen(
                                                 snackbarHostState.showSnackbar(context.getString(R.string.copied_item, cvvLabel))
                                             }
                                         },
-                                        modifier = Modifier.weight(1f)
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .fillMaxHeight()
                                     )
                                 }
                             } else if (hasExpiry) {

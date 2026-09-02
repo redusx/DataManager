@@ -17,9 +17,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -31,6 +34,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.semantics.Role
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.Launch
@@ -473,7 +477,9 @@ fun OverlayPanel(
                                     if (expiryField != null && cvvField != null) {
                                         item {
                                             Row(
-                                                modifier = Modifier.fillMaxWidth(),
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(IntrinsicSize.Min),
                                                 horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
                                             ) {
                                                 val expSensitive = expiryField.isEffectivelySensitive(currentEntry.category)
@@ -488,7 +494,9 @@ fun OverlayPanel(
                                                         Toast.makeText(context, context.getString(R.string.copied_item, expLabel), Toast.LENGTH_SHORT).show()
                                                         scope.launch { delay(150); onCopiedAndMinimize() }
                                                     },
-                                                    modifier = Modifier.weight(1f)
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .fillMaxHeight()
                                                 )
 
                                                 val cvvSensitive = cvvField.isEffectivelySensitive(currentEntry.category)
@@ -503,7 +511,9 @@ fun OverlayPanel(
                                                         Toast.makeText(context, context.getString(R.string.copied_item, cvvLabel), Toast.LENGTH_SHORT).show()
                                                         scope.launch { delay(150); onCopiedAndMinimize() }
                                                     },
-                                                    modifier = Modifier.weight(1f)
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .fillMaxHeight()
                                                 )
                                             }
                                         }
@@ -692,7 +702,7 @@ private fun OverlayEntryFieldRow(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(54.dp)
+            .defaultMinSize(minHeight = 52.dp)
             .clip(ShapeTokens.CardRadius)
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .border(
@@ -700,13 +710,17 @@ private fun OverlayEntryFieldRow(
                 color = MaterialTheme.colorScheme.outlineVariant,
                 shape = ShapeTokens.CardRadius
             )
-            .padding(horizontal = Spacing.s, vertical = 4.dp)
+            .padding(horizontal = Spacing.s, vertical = 6.dp),
+        contentAlignment = Alignment.CenterStart
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center
+            ) {
                 Text(
                     text = readableLabel,
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
@@ -725,18 +739,28 @@ private fun OverlayEntryFieldRow(
                 )
             }
 
+            Spacer(modifier = Modifier.width(4.dp))
+
             if (isSensitive) {
-                IconButton(
-                    onClick = { isRevealed = !isRevealed },
-                    modifier = Modifier.size(28.dp)
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                        .clickable(
+                            role = Role.Button,
+                            onClick = { isRevealed = !isRevealed }
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = if (isRevealed) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
                         contentDescription = if (isRevealed) stringResource(R.string.hide_value) else stringResource(R.string.reveal_value),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(15.dp)
                     )
                 }
+                Spacer(modifier = Modifier.width(4.dp))
             }
 
             CopyButton(

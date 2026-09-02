@@ -2,21 +2,23 @@ package com.example.datamanager.ui.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -76,10 +79,13 @@ fun SensitiveField(
         label.uppercase(currentLocale)
     }
 
+    val buttonSize = if (compact) 30.dp else 38.dp
+    val iconSize = if (compact) 15.dp else 18.dp
+
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(64.dp)
+            .defaultMinSize(minHeight = if (compact) 56.dp else 64.dp)
             .clip(ShapeTokens.CardRadius)
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .border(
@@ -89,15 +95,17 @@ fun SensitiveField(
             )
             .padding(
                 horizontal = if (compact) 10.dp else Spacing.m,
-                vertical = if (compact) 6.dp else Spacing.s
-            )
+                vertical = if (compact) 8.dp else Spacing.s
+            ),
+        contentAlignment = Alignment.CenterStart
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center
             ) {
                 Text(
                     text = upperLabel,
@@ -138,17 +146,25 @@ fun SensitiveField(
 
             // Reveal/Hide Toggle Button
             if (isSensitive) {
-                IconButton(
-                    onClick = { isRevealed = !isRevealed },
-                    modifier = Modifier.size(if (compact) 28.dp else Spacing.touchTargetMin)
+                Box(
+                    modifier = Modifier
+                        .size(buttonSize)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                        .clickable(
+                            role = Role.Button,
+                            onClick = { isRevealed = !isRevealed }
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = if (isRevealed) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
                         contentDescription = if (isRevealed) stringResource(R.string.hide_value) else stringResource(R.string.reveal_value),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(if (compact) 16.dp else 20.dp)
+                        modifier = Modifier.size(iconSize)
                     )
                 }
+                Spacer(modifier = Modifier.width(if (compact) 4.dp else Spacing.xs))
             }
 
             // Quick Copy Action

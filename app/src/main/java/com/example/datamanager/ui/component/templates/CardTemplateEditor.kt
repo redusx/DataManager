@@ -49,6 +49,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.datamanager.R
@@ -239,8 +240,8 @@ fun CardTemplateEditor(
                 OutlinedTextField(
                     value = expiryDate,
                     onValueChange = { if (it.length <= 4) updateField("expiry_date", it.filter { c -> c.isDigit() }, FieldType.DATE, isSensitive = true) },
-                    label = { Text(stringResource(R.string.expiry_label)) },
-                    placeholder = { Text("12 / 28") },
+                    label = { Text(stringResource(R.string.field_expiry_compact), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    placeholder = { Text("AA / YY") },
                     singleLine = true,
                     visualTransformation = ExpiryDateVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -255,7 +256,7 @@ fun CardTemplateEditor(
                 OutlinedTextField(
                     value = cvv,
                     onValueChange = { if (it.length <= 4) updateField("cvv", it.filter { c -> c.isDigit() }, FieldType.NUMBER, isSensitive = true) },
-                    label = { Text(stringResource(R.string.cvv_label)) },
+                    label = { Text(stringResource(R.string.cvv_label), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     placeholder = { Text("•••") },
                     singleLine = true,
                     visualTransformation = if (isCvvRevealed) VisualTransformation.None else PasswordVisualTransformation(),
