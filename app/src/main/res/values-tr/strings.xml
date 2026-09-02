@@ -220,7 +220,9 @@
     <string name="field_card_holder">Kart Üzerindeki İsim</string>
     <string name="field_card_number">Kart Numarası</string>
     <string name="field_expiry_date">Son Kullanma Tarihi</string>
+    <string name="field_expiry_compact">Son Kullanma</string>
     <string name="field_cvv">CVV / Güvenlik Kodu</string>
+    <string name="field_cvv_compact">CVV / CVC</string>
     <string name="field_iban">IBAN</string>
     <string name="field_bank_name">Banka Adı</string>
     <string name="field_account_holder">Hesap Sahibi</string>

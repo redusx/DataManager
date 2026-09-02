@@ -477,11 +477,12 @@ fun OverlayPanel(
                                                 horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
                                             ) {
                                                 val expSensitive = expiryField.isEffectivelySensitive(currentEntry.category)
-                                                val expLabel = FieldFormatter.formatFieldLabel(context, expiryField.key)
+                                                val expLabel = stringResource(R.string.field_expiry_compact)
                                                 OverlayEntryFieldRow(
                                                     field = expiryField,
                                                     category = currentEntry.category,
                                                     entryTitle = currentEntry.title,
+                                                    overrideLabel = expLabel,
                                                     onCopy = {
                                                         ClipboardHelper.copyToClipboard(context, expLabel, expiryField.value, expSensitive)
                                                         Toast.makeText(context, context.getString(R.string.copied_item, expLabel), Toast.LENGTH_SHORT).show()
@@ -491,11 +492,12 @@ fun OverlayPanel(
                                                 )
 
                                                 val cvvSensitive = cvvField.isEffectivelySensitive(currentEntry.category)
-                                                val cvvLabel = FieldFormatter.formatFieldLabel(context, cvvField.key)
+                                                val cvvLabel = stringResource(R.string.field_cvv_compact)
                                                 OverlayEntryFieldRow(
                                                     field = cvvField,
                                                     category = currentEntry.category,
                                                     entryTitle = currentEntry.title,
+                                                    overrideLabel = cvvLabel,
                                                     onCopy = {
                                                         ClipboardHelper.copyToClipboard(context, cvvLabel, cvvField.value, cvvSensitive)
                                                         Toast.makeText(context, context.getString(R.string.copied_item, cvvLabel), Toast.LENGTH_SHORT).show()
@@ -671,16 +673,26 @@ private fun OverlayEntryFieldRow(
     category: String,
     entryTitle: String,
     onCopy: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    overrideLabel: String? = null
 ) {
     val isSensitive = field.isEffectivelySensitive(category)
     var isRevealed by remember { mutableStateOf(!isSensitive) }
     val context = LocalContext.current
-    val readableLabel = FieldFormatter.formatFieldLabel(context, field.key)
+    val readableLabel = overrideLabel ?: FieldFormatter.formatFieldLabel(context, field.key)
+
+    val maskText = remember(field.value) {
+        when {
+            field.value.length <= 4 -> "•".repeat(field.value.length.coerceAtLeast(3))
+            field.value.length in 5..8 -> "••••"
+            else -> "••••••••"
+        }
+    }
 
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .height(54.dp)
             .clip(ShapeTokens.CardRadius)
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .border(
@@ -688,7 +700,7 @@ private fun OverlayEntryFieldRow(
                 color = MaterialTheme.colorScheme.outlineVariant,
                 shape = ShapeTokens.CardRadius
             )
-            .padding(horizontal = Spacing.s, vertical = Spacing.xs)
+            .padding(horizontal = Spacing.s, vertical = 4.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -697,16 +709,18 @@ private fun OverlayEntryFieldRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = readableLabel,
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                     color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = if (isSensitive && !isRevealed) "••••••••••••" else field.value,
+                    text = if (isSensitive && !isRevealed) maskText else field.value,
                     style = if (isSensitive && !isRevealed) MonospaceSecretStyle.copy(fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
-                    else MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-                    maxLines = 2,
+                    else MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface),
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
@@ -714,20 +728,21 @@ private fun OverlayEntryFieldRow(
             if (isSensitive) {
                 IconButton(
                     onClick = { isRevealed = !isRevealed },
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(28.dp)
                 ) {
                     Icon(
                         imageVector = if (isRevealed) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
                         contentDescription = if (isRevealed) stringResource(R.string.hide_value) else stringResource(R.string.reveal_value),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }
 
             CopyButton(
                 onClick = onCopy,
-                contentDescription = "$entryTitle $readableLabel"
+                contentDescription = "$entryTitle $readableLabel",
+                compact = true
             )
         }
     }

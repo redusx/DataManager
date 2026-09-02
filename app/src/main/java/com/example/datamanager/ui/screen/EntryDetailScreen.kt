@@ -249,12 +249,13 @@ fun EntryDetailScreen(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(Spacing.s)
                                 ) {
-                                    val expLabel = FieldFormatter.formatFieldLabel(context, expiryField!!.key)
-                                    val expSensitive = expiryField.isEffectivelySensitive(entry.category)
+                                    val expLabel = stringResource(R.string.field_expiry_compact)
+                                    val expSensitive = expiryField!!.isEffectivelySensitive(entry.category)
                                     SensitiveField(
                                         label = expLabel,
                                         value = expiryField.value,
                                         isSensitive = expSensitive,
+                                        compact = true,
                                         onCopy = { secret ->
                                             ClipboardHelper.copyToClipboard(context, expLabel, secret, expSensitive)
                                             scope.launch {
@@ -264,12 +265,13 @@ fun EntryDetailScreen(
                                         modifier = Modifier.weight(1f)
                                     )
 
-                                    val cvvLabel = FieldFormatter.formatFieldLabel(context, cvvField!!.key)
-                                    val cvvSensitive = cvvField.isEffectivelySensitive(entry.category)
+                                    val cvvLabel = stringResource(R.string.field_cvv_compact)
+                                    val cvvSensitive = cvvField!!.isEffectivelySensitive(entry.category)
                                     SensitiveField(
                                         label = cvvLabel,
                                         value = cvvField.value,
                                         isSensitive = cvvSensitive,
+                                        compact = true,
                                         onCopy = { secret ->
                                             ClipboardHelper.copyToClipboard(context, cvvLabel, secret, cvvSensitive)
                                             scope.launch {

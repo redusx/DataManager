@@ -44,7 +44,8 @@ fun CopyButton(
     contentDescription: String,
     modifier: Modifier = Modifier,
     containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
-    iconColor: Color = MaterialTheme.colorScheme.primary
+    iconColor: Color = MaterialTheme.colorScheme.primary,
+    compact: Boolean = false
 ) {
     val haptic = LocalHapticFeedback.current
     var isCopied by remember { mutableStateOf(false) }
@@ -64,10 +65,13 @@ fun CopyButton(
         }
     }
 
-    // Outer 48x48dp touch target box for guaranteed accessibility
+    val buttonSize = if (compact) 30.dp else 38.dp
+    val touchSize = if (compact) 32.dp else Spacing.touchTargetMin
+    val iconSize = if (compact) 15.dp else 18.dp
+
     Box(
         modifier = modifier
-            .size(Spacing.touchTargetMin)
+            .size(touchSize)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -83,14 +87,14 @@ fun CopyButton(
     ) {
         Surface(
             modifier = Modifier
-                .size(38.dp)
+                .size(buttonSize)
                 .scale(scale),
             shape = CircleShape,
             color = containerColor
         ) {
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.size(38.dp)
+                modifier = Modifier.size(buttonSize)
             ) {
                 Crossfade(
                     targetState = isCopied,
@@ -101,14 +105,14 @@ fun CopyButton(
                             imageVector = Icons.Rounded.Check,
                             contentDescription = null,
                             tint = DarkSuccess,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(iconSize)
                         )
                     } else {
                         Icon(
                             imageVector = Icons.Rounded.ContentCopy,
                             contentDescription = null,
                             tint = iconColor,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(iconSize)
                         )
                     }
                 }

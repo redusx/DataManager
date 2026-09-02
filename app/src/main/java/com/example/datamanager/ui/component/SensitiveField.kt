@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.datamanager.R
 import com.example.datamanager.ui.theme.MonospaceSecretStyle
 import com.example.datamanager.ui.theme.ShapeTokens
@@ -43,7 +44,8 @@ fun SensitiveField(
     value: String,
     isSensitive: Boolean,
     onCopy: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    compact: Boolean = false
 ) {
     var isRevealed by remember { mutableStateOf(!isSensitive) }
 
@@ -59,7 +61,11 @@ fun SensitiveField(
         if (!isSensitive || isRevealed) {
             value
         } else {
-            "••••••••••••"
+            when {
+                value.length <= 4 -> "•".repeat(value.length.coerceAtLeast(3))
+                value.length in 5..8 -> "••••"
+                else -> "••••••••"
+            }
         }
     }
 
@@ -73,6 +79,7 @@ fun SensitiveField(
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .height(64.dp)
             .clip(ShapeTokens.CardRadius)
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .border(
@@ -80,7 +87,10 @@ fun SensitiveField(
                 color = MaterialTheme.colorScheme.outlineVariant,
                 shape = ShapeTokens.CardRadius
             )
-            .padding(horizontal = Spacing.m, vertical = Spacing.s)
+            .padding(
+                horizontal = if (compact) 10.dp else Spacing.m,
+                vertical = if (compact) 6.dp else Spacing.s
+            )
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -91,39 +101,52 @@ fun SensitiveField(
             ) {
                 Text(
                     text = upperLabel,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontSize = if (compact) 10.sp else 11.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
-                Spacer(modifier = Modifier.height(Spacing.xxs))
+                Spacer(modifier = Modifier.height(2.dp))
 
                 Text(
                     text = displayValue,
                     style = if (isSensitive && !isRevealed) {
-                        MonospaceSecretStyle.copy(color = MaterialTheme.colorScheme.onSurface)
+                        MonospaceSecretStyle.copy(
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = if (compact) 14.sp else 16.sp
+                        )
                     } else if (isSensitive) {
-                        MonospaceSecretStyle.copy(color = MaterialTheme.colorScheme.primary)
+                        MonospaceSecretStyle.copy(
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = if (compact) 14.sp else 16.sp
+                        )
                     } else {
-                        MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface)
+                        MaterialTheme.typography.bodyLarge.copy(
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = if (compact) 14.sp else 16.sp
+                        )
                     },
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
 
-            Spacer(modifier = Modifier.width(Spacing.xs))
+            Spacer(modifier = Modifier.width(if (compact) 4.dp else Spacing.xs))
 
             // Reveal/Hide Toggle Button
             if (isSensitive) {
                 IconButton(
                     onClick = { isRevealed = !isRevealed },
-                    modifier = Modifier.size(Spacing.touchTargetMin)
+                    modifier = Modifier.size(if (compact) 28.dp else Spacing.touchTargetMin)
                 ) {
                     Icon(
                         imageVector = if (isRevealed) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
                         contentDescription = if (isRevealed) stringResource(R.string.hide_value) else stringResource(R.string.reveal_value),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(if (compact) 16.dp else 20.dp)
                     )
                 }
             }
@@ -131,7 +154,8 @@ fun SensitiveField(
             // Quick Copy Action
             CopyButton(
                 onClick = { onCopy(value) },
-                contentDescription = stringResource(R.string.copied_item, label)
+                contentDescription = stringResource(R.string.copied_item, label),
+                compact = compact
             )
         }
     }
