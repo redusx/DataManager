@@ -5,11 +5,24 @@ import android.content.Context
 import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -199,7 +212,11 @@ fun HomeScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 navigationIcon = {
-                    if (uiState.isViewingEntries) {
+                    AnimatedVisibility(
+                        visible = uiState.isViewingEntries,
+                        enter = fadeIn(tween(220)) + scaleIn(tween(220), initialScale = 0.8f),
+                        exit = fadeOut(tween(180)) + scaleOut(tween(180), targetScale = 0.8f)
+                    ) {
                         IconButton(
                             onClick = viewModel::returnToCategoryGrid,
                             modifier = Modifier.size(Spacing.touchTargetMin)
@@ -213,31 +230,40 @@ fun HomeScreen(
                     }
                 },
                 title = {
-                    if (uiState.isViewingEntries) {
-                        Text(
-                            text = currentCategoryTitle,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    } else {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            androidx.compose.foundation.Image(
-                                painter = androidx.compose.ui.res.painterResource(id = com.example.datamanager.R.drawable.app_icon),
-                                contentDescription = null,
-                                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(7.dp))
-                            )
-                            Spacer(modifier = Modifier.width(Spacing.xs))
+                    AnimatedContent(
+                        targetState = if (uiState.isViewingEntries) currentCategoryTitle else "MyVault",
+                        transitionSpec = {
+                            (fadeIn(tween(240)) + slideInVertically(tween(240)) { it / 3 })
+                                .togetherWith(fadeOut(tween(180)) + slideOutVertically(tween(180)) { -it / 3 })
+                        },
+                        label = "TopBarTitleAnim"
+                    ) { titleText ->
+                        if (uiState.isViewingEntries) {
                             Text(
-                                text = "MyVault",
+                                text = titleText,
                                 style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                        } else {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                androidx.compose.foundation.Image(
+                                    painter = androidx.compose.ui.res.painterResource(id = com.example.datamanager.R.drawable.app_icon),
+                                    contentDescription = null,
+                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(7.dp))
+                                )
+                                Spacer(modifier = Modifier.width(Spacing.xs))
+                                Text(
+                                    text = titleText,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
                         }
                     }
                 },
@@ -278,14 +304,25 @@ fun HomeScreen(
             ) {
                 FloatingActionButton(
                     onClick = { showTemplateSheet = true },
-                    shape = CircleShape,
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(56.dp)
+                    shape = RoundedCornerShape(18.dp),
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    contentColor = MaterialTheme.colorScheme.primary,
+                    elevation = FloatingActionButtonDefaults.elevation(
+                        defaultElevation = 2.dp,
+                        pressedElevation = 5.dp
+                    ),
+                    modifier = Modifier
+                        .size(56.dp)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                            shape = RoundedCornerShape(18.dp)
+                        )
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Add,
                         contentDescription = stringResource(R.string.add_entry),
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(26.dp)
                     )
                 }
@@ -316,28 +353,64 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(Spacing.xs))
 
-            // Zone 5: Category Filter Chips (Only on category pages)
-            if (uiState.isViewingEntries) {
+            // Zone 5: Category Filter Chips (Only on category pages, animated expand/collapse)
+            AnimatedVisibility(
+                visible = uiState.isViewingEntries,
+                enter = expandVertically(tween(240)) + fadeIn(tween(220)),
+                exit = shrinkVertically(tween(200)) + fadeOut(tween(180))
+            ) {
                 CategoryChipRow(
                     selectedCategoryId = uiState.selectedCategory,
                     onSelectCategory = { categoryId ->
                         viewModel.openCategory(categoryId)
                     },
                     categoryCounts = uiState.categoryCounts,
-                    totalCount = uiState.totalCount
+                    totalCount = uiState.totalCount,
+                    modifier = Modifier.padding(bottom = Spacing.xs)
                 )
-                Spacer(modifier = Modifier.height(Spacing.xs))
             }
 
-            // Zone 6: Content Area (Category Grid OR Entry List)
+            // Zone 6: Content Area (Category Grid OR Entry List with smooth slide/fade transition)
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
             ) {
-                if (!uiState.isViewingEntries) {
-                    // Page 1: 2-Column Category Grid
-                    LazyVerticalGrid(
+                AnimatedContent(
+                    targetState = uiState.isViewingEntries,
+                    transitionSpec = {
+                        if (targetState) {
+                            // Forward: Grid -> Entries
+                            (slideInHorizontally(
+                                initialOffsetX = { fullWidth -> (fullWidth * 0.15f).toInt() },
+                                animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
+                            ) + fadeIn(animationSpec = tween(durationMillis = 240)))
+                            .togetherWith(
+                                slideOutHorizontally(
+                                    targetOffsetX = { fullWidth -> -(fullWidth * 0.12f).toInt() },
+                                    animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing)
+                                ) + fadeOut(animationSpec = tween(durationMillis = 180))
+                            )
+                        } else {
+                            // Backward: Entries -> Grid
+                            (slideInHorizontally(
+                                initialOffsetX = { fullWidth -> -(fullWidth * 0.12f).toInt() },
+                                animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
+                            ) + fadeIn(animationSpec = tween(durationMillis = 240)))
+                            .togetherWith(
+                                slideOutHorizontally(
+                                    targetOffsetX = { fullWidth -> (fullWidth * 0.15f).toInt() },
+                                    animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing)
+                                ) + fadeOut(animationSpec = tween(durationMillis = 180))
+                            )
+                        }
+                    },
+                    label = "CategoryTransitionAnim",
+                    modifier = Modifier.fillMaxSize()
+                ) { isViewingEntries ->
+                    if (!isViewingEntries) {
+                        // Page 1: 2-Column Category Grid
+                        LazyVerticalGrid(
                         columns = GridCells.Fixed(if (isLandscape) 3 else 2),
                         contentPadding = PaddingValues(
                             start = Spacing.m,
@@ -478,6 +551,7 @@ fun HomeScreen(
             }
         }
     }
+}
 }
 
 private data class CategoryGridItem(
