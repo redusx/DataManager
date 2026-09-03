@@ -81,12 +81,15 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -123,9 +126,39 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val listState = rememberLazyListState()
+    val gridState = rememberLazyGridState()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var showTemplateSheet by remember { mutableStateOf(false) }
+
+    // 1. Reset scroll position to top when entering category view or switching category
+    LaunchedEffect(uiState.selectedCategory, uiState.isViewingEntries) {
+        if (uiState.isViewingEntries) {
+            listState.scrollToItem(0)
+            gridState.scrollToItem(0)
+        }
+    }
+
+    // 2. Automatically scroll to top when a new entry is added
+    val entriesCount = uiState.entries.size
+    val firstEntryId = uiState.entries.firstOrNull()?.id
+    var previousEntriesCount by rememberSaveable { mutableIntStateOf(entriesCount) }
+
+    LaunchedEffect(firstEntryId, entriesCount) {
+        if (entriesCount > previousEntriesCount && uiState.isViewingEntries) {
+            listState.animateScrollToItem(0)
+            gridState.animateScrollToItem(0)
+        }
+        previousEntriesCount = entriesCount
+    }
+
+    // 3. Reset scroll position when search query changes
+    LaunchedEffect(uiState.searchQuery) {
+        if (uiState.searchQuery.isNotEmpty() && uiState.isViewingEntries) {
+            listState.scrollToItem(0)
+            gridState.scrollToItem(0)
+        }
+    }
 
     val onLaunchFloatingAccess: () -> Unit = {
         val hasPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -330,7 +363,6 @@ fun HomeScreen(
         }
     ) { paddingValues ->
         val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-        val gridState = rememberLazyGridState()
 
         Column(
             modifier = Modifier
