@@ -20,6 +20,7 @@ data class HomeUiState(
     val totalCount: Int = 0,
     val selectedCategory: String? = null,
     val searchQuery: String = "",
+    val isViewingEntries: Boolean = false,
     val isLoading: Boolean = false
 )
 
@@ -30,13 +31,15 @@ class HomeViewModel @Inject constructor(
 
     private val _selectedCategory = MutableStateFlow<String?>(null)
     private val _searchQuery = MutableStateFlow("")
+    private val _isViewingEntries = MutableStateFlow(false)
 
     val uiState: StateFlow<HomeUiState> = combine(
         dataRepository.getAllEntries(),
         dataRepository.getCategoryCounts(),
         _selectedCategory,
-        _searchQuery
-    ) { allEntries, counts, selectedCategory, searchQuery ->
+        _searchQuery,
+        _isViewingEntries
+    ) { allEntries, counts, selectedCategory, searchQuery, isViewingEntries ->
         val countMap = counts.associate { it.category to it.count }
         val total = allEntries.size
 
@@ -55,6 +58,7 @@ class HomeViewModel @Inject constructor(
             totalCount = total,
             selectedCategory = selectedCategory,
             searchQuery = searchQuery,
+            isViewingEntries = isViewingEntries || searchQuery.isNotEmpty(),
             isLoading = false
         )
     }.stateIn(
@@ -65,10 +69,25 @@ class HomeViewModel @Inject constructor(
 
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query
+        if (query.isNotEmpty()) {
+            _isViewingEntries.value = true
+        }
     }
 
     fun onCategorySelected(categoryId: String?) {
         _selectedCategory.value = categoryId
+        _isViewingEntries.value = true
+    }
+
+    fun openCategory(categoryId: String?) {
+        _selectedCategory.value = categoryId
+        _isViewingEntries.value = true
+    }
+
+    fun returnToCategoryGrid() {
+        _isViewingEntries.value = false
+        _selectedCategory.value = null
+        _searchQuery.value = ""
     }
 
     fun clearSearch() {

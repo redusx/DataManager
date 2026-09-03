@@ -46,10 +46,18 @@
     <string name="search_placeholder">Search your data…</string>
 
     <!-- Categories -->
+    <string name="back">Back</string>
     <string name="category_personal">Personal</string>
     <string name="category_financial">Financial</string>
     <string name="category_accounts">Accounts</string>
     <string name="category_custom">Custom</string>
+    <string name="category_all_title">All Records</string>
+    <string name="category_all_desc">All records in vault</string>
+    <string name="category_financial_desc">Bank, cards and accounts</string>
+    <string name="category_personal_desc">Identity, passport and address</string>
+    <string name="category_accounts_desc">Web, app logins and passwords</string>
+    <string name="category_custom_desc">Secure notes and custom data</string>
+    <string name="empty_category_entries">No records in this category yet.</string>
 
     <!-- Entry -->
     <string name="add_entry">New Entry</string>

@@ -46,10 +46,18 @@
     <string name="search_placeholder">Verilerinizde arayın…</string>
 
     <!-- Categories -->
+    <string name="back">Geri</string>
     <string name="category_personal">Kişisel</string>
     <string name="category_financial">Finansal</string>
     <string name="category_accounts">Hesaplar</string>
     <string name="category_custom">Özel</string>
+    <string name="category_all_title">Tüm Kayıtlar</string>
+    <string name="category_all_desc">Kasadaki tüm kayıtlar</string>
+    <string name="category_financial_desc">Banka, kredi kartı ve hesaplar</string>
+    <string name="category_personal_desc">Kimlik, pasaport ve adresler</string>
+    <string name="category_accounts_desc">Web, uygulama hesapları ve şifreler</string>
+    <string name="category_custom_desc">Güvenli notlar ve özel veriler</string>
+    <string name="empty_category_entries">Bu kategoride henüz kayıt bulunmuyor.</string>
 
     <!-- Entry -->
     <string name="add_entry">Yeni Kayıt</string>

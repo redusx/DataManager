@@ -38,9 +38,24 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
+import androidx.activity.compose.BackHandler
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material.icons.rounded.CreditCard
+import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material.icons.rounded.GridView
+import androidx.compose.material3.Button
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import com.example.datamanager.ui.component.CategoryCard
+import com.example.datamanager.ui.theme.CategoryCardsTint
+import com.example.datamanager.ui.theme.CategoryIdentityTint
+import com.example.datamanager.ui.theme.CategoryLoginsTint
+import com.example.datamanager.ui.theme.CategoryNotesTint
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -77,6 +92,7 @@ import com.example.datamanager.ui.component.OverlayLaunchCard
 import com.example.datamanager.ui.component.SearchEmptyState
 import com.example.datamanager.ui.component.TemplateSelectorBottomSheet
 import com.example.datamanager.ui.component.VaultSearchBar
+import com.example.datamanager.ui.theme.ShapeTokens
 import com.example.datamanager.ui.theme.Spacing
 import com.example.datamanager.ui.viewmodel.HomeViewModel
 import com.example.datamanager.util.ClipboardHelper
@@ -127,29 +143,102 @@ fun HomeScreen(
         )
     }
 
+    BackHandler(enabled = uiState.isViewingEntries) {
+        viewModel.returnToCategoryGrid()
+    }
+
+    val categoryGridItems = remember(uiState.categoryCounts) {
+        listOf(
+            CategoryGridItem(
+                id = "financial",
+                titleRes = R.string.category_financial,
+                subtitleRes = R.string.category_financial_desc,
+                icon = Icons.Rounded.CreditCard,
+                tint = CategoryCardsTint,
+                count = uiState.categoryCounts["financial"] ?: 0
+            ),
+            CategoryGridItem(
+                id = "personal",
+                titleRes = R.string.category_personal,
+                subtitleRes = R.string.category_personal_desc,
+                icon = Icons.Rounded.AccountCircle,
+                tint = CategoryIdentityTint,
+                count = uiState.categoryCounts["personal"] ?: 0
+            ),
+            CategoryGridItem(
+                id = "account",
+                titleRes = R.string.category_accounts,
+                subtitleRes = R.string.category_accounts_desc,
+                icon = Icons.Rounded.Lock,
+                tint = CategoryLoginsTint,
+                count = uiState.categoryCounts["account"] ?: 0
+            ),
+            CategoryGridItem(
+                id = "custom",
+                titleRes = R.string.category_custom,
+                subtitleRes = R.string.category_custom_desc,
+                icon = Icons.Rounded.Description,
+                tint = CategoryNotesTint,
+                count = uiState.categoryCounts["custom"] ?: 0
+            )
+        )
+    }
+
+    val currentCategoryTitle = when {
+        uiState.searchQuery.isNotEmpty() -> stringResource(R.string.search_placeholder)
+        uiState.selectedCategory == "financial" -> stringResource(R.string.category_financial)
+        uiState.selectedCategory == "personal" -> stringResource(R.string.category_personal)
+        uiState.selectedCategory == "account" -> stringResource(R.string.category_accounts)
+        uiState.selectedCategory == "custom" -> stringResource(R.string.category_custom)
+        else -> stringResource(R.string.category_all_title)
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
+                navigationIcon = {
+                    if (uiState.isViewingEntries) {
+                        IconButton(
+                            onClick = viewModel::returnToCategoryGrid,
+                            modifier = Modifier.size(Spacing.touchTargetMin)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                contentDescription = stringResource(R.string.back),
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                },
                 title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        androidx.compose.foundation.Image(
-                            painter = androidx.compose.ui.res.painterResource(id = com.example.datamanager.R.drawable.app_icon),
-                            contentDescription = null,
-                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                            modifier = Modifier
-                                .size(28.dp)
-                                .clip(androidx.compose.foundation.shape.RoundedCornerShape(7.dp))
-                        )
-                        Spacer(modifier = Modifier.width(Spacing.xs))
+                    if (uiState.isViewingEntries) {
                         Text(
-                            text = "MyVault",
+                            text = currentCategoryTitle,
                             style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
+                    } else {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            androidx.compose.foundation.Image(
+                                painter = androidx.compose.ui.res.painterResource(id = com.example.datamanager.R.drawable.app_icon),
+                                contentDescription = null,
+                                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(7.dp))
+                            )
+                            Spacer(modifier = Modifier.width(Spacing.xs))
+                            Text(
+                                text = "MyVault",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 },
                 actions = {
@@ -206,37 +295,50 @@ fun HomeScreen(
         val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
         val gridState = rememberLazyGridState()
 
-        if (isLandscape) {
-            when {
-                // Empty Vault (0 records in DB)
-                uiState.totalCount == 0 && !uiState.isLoading -> {
-                    EmptyVaultState(
-                        onAddClick = { showTemplateSheet = true },
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)
-                            .verticalScroll(rememberScrollState())
-                    )
-                }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            // Zone 3: Search Anchor (Present on both pages)
+            VaultSearchBar(
+                query = uiState.searchQuery,
+                onQueryChange = viewModel::onSearchQueryChanged,
+                onClear = viewModel::clearSearch,
+                modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.xs)
+            )
 
-                // Search Yields No Results
-                uiState.entries.isEmpty() && uiState.searchQuery.isNotEmpty() -> {
-                    SearchEmptyState(
-                        query = uiState.searchQuery,
-                        onClearSearch = viewModel::clearSearch,
-                        onAddWithQuery = { showTemplateSheet = true },
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)
-                            .verticalScroll(rememberScrollState())
-                    )
-                }
+            // Zone 4: Utility Overlay Strip (Shown on category grid)
+            if (!uiState.isViewingEntries) {
+                OverlayLaunchCard(
+                    onClick = onLaunchFloatingAccess,
+                    modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.xxs)
+                )
+                Spacer(modifier = Modifier.height(Spacing.xs))
+            }
 
-                // Landscape Content: 2 Columns & Scrollable Header
-                else -> {
+            // Zone 5: Category Filter Chips ("kategori seçme satırı da üstte her sayfada olsun")
+            CategoryChipRow(
+                selectedCategoryId = if (uiState.isViewingEntries) uiState.selectedCategory else null,
+                onSelectCategory = { categoryId ->
+                    viewModel.openCategory(categoryId)
+                },
+                categoryCounts = uiState.categoryCounts,
+                totalCount = uiState.totalCount
+            )
+
+            Spacer(modifier = Modifier.height(Spacing.xs))
+
+            // Zone 6: Content Area (Category Grid OR Entry List)
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+                if (!uiState.isViewingEntries) {
+                    // Page 1: 2-Column Category Grid
                     LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
-                        state = gridState,
+                        columns = GridCells.Fixed(if (isLandscape) 3 else 2),
                         contentPadding = PaddingValues(
                             start = Spacing.m,
                             end = Spacing.m,
@@ -244,113 +346,36 @@ fun HomeScreen(
                             bottom = 80.dp // Padding for FAB
                         ),
                         horizontalArrangement = Arrangement.spacedBy(Spacing.s),
-                        verticalArrangement = Arrangement.spacedBy(Spacing.xs),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)
+                        verticalArrangement = Arrangement.spacedBy(Spacing.s),
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        // Zone 3: Search Bar (Spans full width)
-                        item(span = { GridItemSpan(2) }) {
-                            VaultSearchBar(
-                                query = uiState.searchQuery,
-                                onQueryChange = viewModel::onSearchQueryChanged,
-                                onClear = viewModel::clearSearch,
-                                modifier = Modifier.fillMaxWidth()
+                        // Top Summary Card: Tüm Kayıtlar (Spans full width)
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            CategoryCard(
+                                title = stringResource(R.string.category_all_title),
+                                subtitle = stringResource(R.string.category_all_desc),
+                                count = uiState.totalCount,
+                                icon = Icons.Rounded.GridView,
+                                iconTint = MaterialTheme.colorScheme.primary,
+                                onClick = { viewModel.openCategory(null) }
                             )
                         }
 
-                        // Zone 4: Utility Overlay Strip (Spans full width)
-                        item(span = { GridItemSpan(2) }) {
-                            OverlayLaunchCard(
-                                onClick = onLaunchFloatingAccess,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-
-                        // Zone 5: Category Filter Chips (Spans full width)
-                        item(span = { GridItemSpan(2) }) {
-                            CategoryChipRow(
-                                selectedCategoryId = uiState.selectedCategory,
-                                onSelectCategory = viewModel::onCategorySelected,
-                                categoryCounts = uiState.categoryCounts,
-                                totalCount = uiState.totalCount
-                            )
-                        }
-
-                        // Zone 6: Entries (2 Columns side-by-side)
-                        items(
-                            items = uiState.entries,
-                            key = { it.id }
-                        ) { entry ->
-                            EntryCard(
-                                entry = entry,
-                                onCardClick = { onEntryClick(entry.id) },
-                                onCopyClick = { secret ->
-                                    ClipboardHelper.copyToClipboard(
-                                        context = context,
-                                        label = entry.title,
-                                        text = secret,
-                                        isSensitive = true
-                                    )
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(
-                                            message = "${entry.title} kopyalandı",
-                                            withDismissAction = true
-                                        )
-                                    }
-                                }
+                        // 4 Categories (2 columns per row in portrait, 3 in landscape)
+                        items(categoryGridItems, key = { it.id ?: "all" }) { item ->
+                            CategoryCard(
+                                title = stringResource(item.titleRes),
+                                subtitle = stringResource(item.subtitleRes),
+                                count = item.count,
+                                icon = item.icon,
+                                iconTint = item.tint,
+                                onClick = { viewModel.openCategory(item.id) }
                             )
                         }
                     }
-                }
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) {
-                // Zone 3: Search Anchor
-                VaultSearchBar(
-                    query = uiState.searchQuery,
-                    onQueryChange = viewModel::onSearchQueryChanged,
-                    onClear = viewModel::clearSearch,
-                    modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.xs)
-                )
-
-                // Zone 4: Utility Overlay Strip
-                OverlayLaunchCard(
-                    onClick = onLaunchFloatingAccess,
-                    modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.xxs)
-                )
-
-                Spacer(modifier = Modifier.height(Spacing.xs))
-
-                // Zone 5: Category Filter Chips
-                CategoryChipRow(
-                    selectedCategoryId = uiState.selectedCategory,
-                    onSelectCategory = viewModel::onCategorySelected,
-                    categoryCounts = uiState.categoryCounts,
-                    totalCount = uiState.totalCount
-                )
-
-                Spacer(modifier = Modifier.height(Spacing.xs))
-
-                // Zone 6: Main Content List
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                ) {
+                } else {
+                    // Page 2: Filtered Entry List
                     when {
-                        // Empty Vault (0 records in DB)
-                        uiState.totalCount == 0 && !uiState.isLoading -> {
-                            EmptyVaultState(
-                                onAddClick = { showTemplateSheet = true },
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
-
                         // Search Yields No Results
                         uiState.entries.isEmpty() && uiState.searchQuery.isNotEmpty() -> {
                             SearchEmptyState(
@@ -361,47 +386,160 @@ fun HomeScreen(
                             )
                         }
 
-                        // Content List
-                        else -> {
-                            LazyColumn(
-                                state = listState,
-                                contentPadding = PaddingValues(
-                                    start = Spacing.m,
-                                    end = Spacing.m,
-                                    top = Spacing.xs,
-                                    bottom = 80.dp // Padding for FAB
-                                ),
-                                verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+                        // Empty Category
+                        uiState.entries.isEmpty() -> {
+                            EmptyCategoryState(
+                                categoryTitle = currentCategoryTitle,
+                                onAddClick = { showTemplateSheet = true },
                                 modifier = Modifier.fillMaxSize()
-                            ) {
-                                items(
-                                    items = uiState.entries,
-                                    key = { it.id }
-                                ) { entry ->
-                                    EntryCard(
-                                        entry = entry,
-                                        onCardClick = { onEntryClick(entry.id) },
-                                        onCopyClick = { secret ->
-                                            ClipboardHelper.copyToClipboard(
-                                                context = context,
-                                                label = entry.title,
-                                                text = secret,
-                                                isSensitive = true
-                                            )
-                                            scope.launch {
-                                                snackbarHostState.showSnackbar(
-                                                    message = "${entry.title} kopyalandı",
-                                                    withDismissAction = true
+                            )
+                        }
+
+                        // Content List / Grid
+                        else -> {
+                            if (isLandscape) {
+                                LazyVerticalGrid(
+                                    columns = GridCells.Fixed(2),
+                                    state = gridState,
+                                    contentPadding = PaddingValues(
+                                        start = Spacing.m,
+                                        end = Spacing.m,
+                                        top = Spacing.xs,
+                                        bottom = 80.dp
+                                    ),
+                                    horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                                    verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    items(
+                                        items = uiState.entries,
+                                        key = { it.id }
+                                    ) { entry ->
+                                        EntryCard(
+                                            entry = entry,
+                                            onCardClick = { onEntryClick(entry.id) },
+                                            onCopyClick = { secret ->
+                                                ClipboardHelper.copyToClipboard(
+                                                    context = context,
+                                                    label = entry.title,
+                                                    text = secret,
+                                                    isSensitive = true
                                                 )
+                                                scope.launch {
+                                                    snackbarHostState.showSnackbar(
+                                                        message = "${entry.title} kopyalandı",
+                                                        withDismissAction = true
+                                                    )
+                                                }
                                             }
-                                        }
-                                    )
+                                        )
+                                    }
+                                }
+                            } else {
+                                LazyColumn(
+                                    state = listState,
+                                    contentPadding = PaddingValues(
+                                        start = Spacing.m,
+                                        end = Spacing.m,
+                                        top = Spacing.xs,
+                                        bottom = 80.dp
+                                    ),
+                                    verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    items(
+                                        items = uiState.entries,
+                                        key = { it.id }
+                                    ) { entry ->
+                                        EntryCard(
+                                            entry = entry,
+                                            onCardClick = { onEntryClick(entry.id) },
+                                            onCopyClick = { secret ->
+                                                ClipboardHelper.copyToClipboard(
+                                                    context = context,
+                                                    label = entry.title,
+                                                    text = secret,
+                                                    isSensitive = true
+                                                )
+                                                scope.launch {
+                                                    snackbarHostState.showSnackbar(
+                                                        message = "${entry.title} kopyalandı",
+                                                        withDismissAction = true
+                                                    )
+                                                }
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+private data class CategoryGridItem(
+    val id: String?,
+    val titleRes: Int,
+    val subtitleRes: Int,
+    val icon: ImageVector,
+    val tint: Color,
+    val count: Int
+)
+
+@Composable
+private fun EmptyCategoryState(
+    categoryTitle: String,
+    onAddClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.padding(Spacing.xl),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Description,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(32.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(Spacing.m))
+        Text(
+            text = categoryTitle,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(modifier = Modifier.height(Spacing.xxs))
+        Text(
+            text = stringResource(R.string.empty_category_entries),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(Spacing.l))
+        Button(
+            onClick = onAddClick,
+            shape = ShapeTokens.ButtonRadius
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Add,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(Spacing.xs))
+            Text(text = stringResource(R.string.add_entry))
         }
     }
 }
