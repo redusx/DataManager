@@ -1,5 +1,11 @@
 package com.example.datamanager.ui.navigation
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -37,7 +43,20 @@ fun AppNavigation(
         navController = navController,
         startDestination = Routes.AUTH
     ) {
-        composable(Routes.AUTH) {
+        composable(
+            route = Routes.AUTH,
+            exitTransition = {
+                fadeOut(animationSpec = tween(280)) +
+                slideOutVertically(
+                    targetOffsetY = { -it / 6 },
+                    animationSpec = tween(280, easing = FastOutSlowInEasing)
+                )
+            },
+            popEnterTransition = {
+                fadeIn(animationSpec = tween(260)) +
+                scaleIn(initialScale = 1.04f, animationSpec = tween(260, easing = FastOutSlowInEasing))
+            }
+        ) {
             AuthScreen(
                 onAuthenticated = {
                     navController.navigate(Routes.HOME) {
@@ -50,7 +69,16 @@ fun AppNavigation(
             )
         }
 
-        composable(Routes.HOME) {
+        composable(
+            route = Routes.HOME,
+            enterTransition = {
+                fadeIn(animationSpec = tween(300)) +
+                scaleIn(initialScale = 0.95f, animationSpec = tween(300, easing = FastOutSlowInEasing))
+            },
+            exitTransition = {
+                fadeOut(animationSpec = tween(220))
+            }
+        ) {
             HomeScreen(
                 onEntryClick = { entryId ->
                     navController.navigate(Routes.entryDetail(entryId))

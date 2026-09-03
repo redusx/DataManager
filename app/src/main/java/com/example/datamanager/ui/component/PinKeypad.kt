@@ -176,10 +176,17 @@ fun PinDots(
     pinLength: Int,
     maxLength: Int = 6,
     isError: Boolean = false,
+    isSuccess: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    val successColor = androidx.compose.ui.graphics.Color(0xFF81D498)
     val dotColor by animateColorAsState(
-        targetValue = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+        targetValue = when {
+            isError -> MaterialTheme.colorScheme.error
+            isSuccess -> successColor
+            else -> MaterialTheme.colorScheme.primary
+        },
+        animationSpec = androidx.compose.animation.core.tween(180),
         label = "dot_color"
     )
     val emptyColor = MaterialTheme.colorScheme.surfaceVariant
@@ -192,8 +199,12 @@ fun PinDots(
         repeat(maxLength) { index ->
             val filled = index < pinLength
             val scale by animateFloatAsState(
-                targetValue = if (filled) 1.2f else 1f,
-                animationSpec = spring(dampingRatio = 0.4f, stiffness = 300f),
+                targetValue = when {
+                    isSuccess -> 1.35f
+                    filled -> 1.2f
+                    else -> 1f
+                },
+                animationSpec = spring(dampingRatio = 0.45f, stiffness = 320f),
                 label = "dot_scale_$index"
             )
             Box(
@@ -201,7 +212,7 @@ fun PinDots(
                     .size(16.dp)
                     .scale(scale)
                     .clip(CircleShape)
-                    .background(if (filled) dotColor else emptyColor)
+                    .background(if (filled || isSuccess) dotColor else emptyColor)
             )
         }
     }

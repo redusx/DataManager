@@ -10,6 +10,7 @@ import com.example.datamanager.data.security.CryptoManager
 import com.example.datamanager.data.security.KeystoreManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,7 +30,8 @@ data class AuthUiState(
     val isPinSetup: Boolean = false,
     val isResettingPinWithBiometric: Boolean = false,
     val showResetVaultDialog: Boolean = false,
-    val resetSuccessMessage: String? = null
+    val resetSuccessMessage: String? = null,
+    val isUnlocking: Boolean = false
 )
 
 enum class AuthMode {
@@ -88,10 +90,14 @@ class AuthViewModel @Inject constructor(
                     if (newConfirm == currentState.pin) {
                         val success = authRepository.setupPin(newConfirm)
                         if (success) {
-                            _uiState.value = _uiState.value.copy(
-                                mode = AuthMode.AUTHENTICATED,
-                                isResettingPinWithBiometric = false
-                            )
+                            _uiState.value = _uiState.value.copy(isUnlocking = true)
+                            viewModelScope.launch {
+                                delay(220)
+                                _uiState.value = _uiState.value.copy(
+                                    mode = AuthMode.AUTHENTICATED,
+                                    isResettingPinWithBiometric = false
+                                )
+                            }
                         } else {
                             _uiState.value = _uiState.value.copy(
                                 mode = AuthMode.SETUP_PIN,
@@ -118,16 +124,23 @@ class AuthViewModel @Inject constructor(
                 if (newPin.length >= 6) {
                     val isValid = authRepository.verifyPin(newPin)
                     if (isValid) {
-                        _uiState.value = _uiState.value.copy(mode = AuthMode.AUTHENTICATED)
+                        _uiState.value = _uiState.value.copy(isUnlocking = true)
+                        viewModelScope.launch {
+                            delay(240) // Allow 6th dot animation & success visual feedback to complete
+                            _uiState.value = _uiState.value.copy(mode = AuthMode.AUTHENTICATED)
+                        }
                     } else {
-                        _uiState.value = _uiState.value.copy(
-                            pin = "",
-                            isError = true,
-                            errorMessage = "wrong_pin",
-                            failedAttempts = authRepository.getFailedAttempts(),
-                            isLockedOut = authRepository.isLockedOut(),
-                            lockoutRemainingMs = authRepository.getLockoutRemainingMs()
-                        )
+                        viewModelScope.launch {
+                            delay(80)
+                            _uiState.value = _uiState.value.copy(
+                                pin = "",
+                                isError = true,
+                                errorMessage = "wrong_pin",
+                                failedAttempts = authRepository.getFailedAttempts(),
+                                isLockedOut = authRepository.isLockedOut(),
+                                lockoutRemainingMs = authRepository.getLockoutRemainingMs()
+                            )
+                        }
                     }
                 }
             }
@@ -158,7 +171,11 @@ class AuthViewModel @Inject constructor(
     }
 
     fun onBiometricSuccess() {
-        _uiState.value = _uiState.value.copy(mode = AuthMode.AUTHENTICATED)
+        _uiState.value = _uiState.value.copy(isUnlocking = true)
+        viewModelScope.launch {
+            delay(200)
+            _uiState.value = _uiState.value.copy(mode = AuthMode.AUTHENTICATED)
+        }
     }
 
     fun onBiometricResetVerified() {

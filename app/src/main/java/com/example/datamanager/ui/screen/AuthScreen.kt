@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -95,6 +97,14 @@ fun AuthScreen(
     var hasAutoPromptedBiometric by rememberSaveable { mutableStateOf(false) }
     var showRecoveryOptionsSheet by remember { mutableStateOf(false) }
     var showWipeConfirmDialog by remember { mutableStateOf(false) }
+
+    val haptic = LocalHapticFeedback.current
+
+    LaunchedEffect(uiState.isUnlocking) {
+        if (uiState.isUnlocking) {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        }
+    }
 
     LaunchedEffect(uiState.mode) {
         if (uiState.mode == AuthMode.AUTHENTICATED) {
@@ -197,7 +207,8 @@ fun AuthScreen(
                     PinDots(
                         pinLength = currentPinLength,
                         maxLength = 6,
-                        isError = uiState.isError
+                        isError = uiState.isError,
+                        isSuccess = uiState.isUnlocking
                     )
 
                     // Error message
@@ -349,7 +360,8 @@ fun AuthScreen(
                     PinDots(
                         pinLength = currentPinLength,
                         maxLength = 6,
-                        isError = uiState.isError
+                        isError = uiState.isError,
+                        isSuccess = uiState.isUnlocking
                     )
 
                     Spacer(modifier = Modifier.height(Spacing.m))
