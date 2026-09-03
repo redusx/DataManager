@@ -308,26 +308,26 @@ fun HomeScreen(
                 modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.xs)
             )
 
-            // Zone 4: Utility Overlay Strip (Shown on category grid)
-            if (!uiState.isViewingEntries) {
-                OverlayLaunchCard(
-                    onClick = onLaunchFloatingAccess,
-                    modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.xxs)
-                )
-                Spacer(modifier = Modifier.height(Spacing.xs))
-            }
-
-            // Zone 5: Category Filter Chips ("kategori seçme satırı da üstte her sayfada olsun")
-            CategoryChipRow(
-                selectedCategoryId = if (uiState.isViewingEntries) uiState.selectedCategory else null,
-                onSelectCategory = { categoryId ->
-                    viewModel.openCategory(categoryId)
-                },
-                categoryCounts = uiState.categoryCounts,
-                totalCount = uiState.totalCount
+            // Zone 4: Utility Overlay Strip (Shown on both main screen and category pages)
+            OverlayLaunchCard(
+                onClick = onLaunchFloatingAccess,
+                modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.xxs)
             )
 
             Spacer(modifier = Modifier.height(Spacing.xs))
+
+            // Zone 5: Category Filter Chips (Only on category pages)
+            if (uiState.isViewingEntries) {
+                CategoryChipRow(
+                    selectedCategoryId = uiState.selectedCategory,
+                    onSelectCategory = { categoryId ->
+                        viewModel.openCategory(categoryId)
+                    },
+                    categoryCounts = uiState.categoryCounts,
+                    totalCount = uiState.totalCount
+                )
+                Spacer(modifier = Modifier.height(Spacing.xs))
+            }
 
             // Zone 6: Content Area (Category Grid OR Entry List)
             Box(
