@@ -11,9 +11,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Visibility
@@ -60,14 +63,27 @@ fun SensitiveField(
         }
     }
 
+    val isMultiline = !compact && (
+        value.contains("\n") ||
+        label.contains("not", ignoreCase = true) ||
+        label.contains("note", ignoreCase = true) ||
+        label.contains("adres", ignoreCase = true) ||
+        label.contains("address", ignoreCase = true) ||
+        value.length > 40
+    )
+
     val displayValue = remember(value, isSensitive, isRevealed) {
         if (!isSensitive || isRevealed) {
             value
         } else {
-            when {
-                value.length <= 4 -> "•".repeat(value.length.coerceAtLeast(3))
-                value.length in 5..8 -> "••••"
-                else -> "••••••••"
+            if (value.contains("\n")) {
+                value.lines().joinToString("\n") { "••••••••" }
+            } else {
+                when {
+                    value.length <= 4 -> "•".repeat(value.length.coerceAtLeast(3))
+                    value.length in 5..8 -> "••••"
+                    else -> "••••••••"
+                }
             }
         }
     }
@@ -97,11 +113,11 @@ fun SensitiveField(
                 horizontal = if (compact) 10.dp else Spacing.m,
                 vertical = if (compact) 8.dp else Spacing.s
             ),
-        contentAlignment = Alignment.CenterStart
+        contentAlignment = if (isMultiline) Alignment.TopStart else Alignment.CenterStart
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = if (isMultiline) Alignment.Top else Alignment.CenterVertically
         ) {
             Column(
                 modifier = Modifier.weight(1f),
@@ -119,27 +135,47 @@ fun SensitiveField(
 
                 Spacer(modifier = Modifier.height(2.dp))
 
-                Text(
-                    text = displayValue,
-                    style = if (isSensitive && !isRevealed) {
-                        MonospaceSecretStyle.copy(
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = if (compact) 14.sp else 16.sp
+                val textStyle = if (isSensitive && !isRevealed) {
+                    MonospaceSecretStyle.copy(
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = if (compact) 14.sp else 16.sp,
+                        lineHeight = if (compact) 18.sp else 22.sp
+                    )
+                } else if (isSensitive) {
+                    MonospaceSecretStyle.copy(
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = if (compact) 14.sp else 16.sp,
+                        lineHeight = if (compact) 18.sp else 22.sp
+                    )
+                } else {
+                    MaterialTheme.typography.bodyLarge.copy(
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = if (compact) 14.sp else 16.sp,
+                        lineHeight = if (compact) 18.sp else 22.sp
+                    )
+                }
+
+                if (isMultiline) {
+                    val scrollState = rememberScrollState()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 115.dp) // Expands up to 5 lines (~22sp line height), scrollable if more
+                            .verticalScroll(scrollState)
+                    ) {
+                        Text(
+                            text = displayValue,
+                            style = textStyle
                         )
-                    } else if (isSensitive) {
-                        MonospaceSecretStyle.copy(
-                            color = MaterialTheme.colorScheme.primary,
-                            fontSize = if (compact) 14.sp else 16.sp
-                        )
-                    } else {
-                        MaterialTheme.typography.bodyLarge.copy(
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = if (compact) 14.sp else 16.sp
-                        )
-                    },
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                    }
+                } else {
+                    Text(
+                        text = displayValue,
+                        style = textStyle,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(if (compact) 4.dp else Spacing.xs))
@@ -148,6 +184,7 @@ fun SensitiveField(
             if (isSensitive) {
                 Box(
                     modifier = Modifier
+                        .padding(top = if (isMultiline) 2.dp else 0.dp)
                         .size(buttonSize)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surfaceContainerHigh)
@@ -171,7 +208,8 @@ fun SensitiveField(
             CopyButton(
                 onClick = { onCopy(value) },
                 contentDescription = stringResource(R.string.copied_item, label),
-                compact = compact
+                compact = compact,
+                modifier = if (isMultiline) Modifier.padding(top = 2.dp) else Modifier
             )
         }
     }

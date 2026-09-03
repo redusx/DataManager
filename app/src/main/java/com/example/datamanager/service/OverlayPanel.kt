@@ -25,9 +25,12 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -77,6 +80,7 @@ import com.example.datamanager.R
 import com.example.datamanager.data.model.Category
 import com.example.datamanager.data.model.DataEntry
 import com.example.datamanager.data.model.FieldItem
+import com.example.datamanager.data.model.FieldType
 import com.example.datamanager.data.model.TemplateType
 import com.example.datamanager.data.model.isEffectivelySensitive
 import com.example.datamanager.ui.component.CopyButton
@@ -449,7 +453,7 @@ fun OverlayPanel(
                             LazyColumn(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(240.dp),
+                                    .heightIn(min = 220.dp, max = 300.dp),
                                 verticalArrangement = Arrangement.spacedBy(Spacing.xs)
                             ) {
                                 val hasCardNumber = fields.any { it.key == "card_number" && it.value.isNotBlank() }
@@ -691,12 +695,32 @@ private fun OverlayEntryFieldRow(
     val context = LocalContext.current
     val readableLabel = overrideLabel ?: FieldFormatter.formatFieldLabel(context, field.key)
 
+    val isMultiline = field.type == FieldType.MULTILINE ||
+            field.value.contains("\n") ||
+            field.key.contains("note", ignoreCase = true) ||
+            field.key.contains("address", ignoreCase = true) ||
+            field.key.contains("adres", ignoreCase = true) ||
+            field.value.length > 35
+
     val maskText = remember(field.value) {
-        when {
-            field.value.length <= 4 -> "•".repeat(field.value.length.coerceAtLeast(3))
-            field.value.length in 5..8 -> "••••"
-            else -> "••••••••"
+        if (field.value.contains("\n")) {
+            field.value.lines().joinToString("\n") { "••••••••" }
+        } else {
+            when {
+                field.value.length <= 4 -> "•".repeat(field.value.length.coerceAtLeast(3))
+                field.value.length in 5..8 -> "••••"
+                else -> "••••••••"
+            }
         }
+    }
+
+    val displayText = if (isSensitive && !isRevealed) maskText else field.value
+    val textStyle = if (isSensitive && !isRevealed) {
+        MonospaceSecretStyle.copy(fontSize = 13.sp, lineHeight = 18.sp, color = MaterialTheme.colorScheme.onSurface)
+    } else if (isSensitive) {
+        MonospaceSecretStyle.copy(fontSize = 13.sp, lineHeight = 18.sp, color = MaterialTheme.colorScheme.primary)
+    } else {
+        MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp, lineHeight = 18.sp, color = MaterialTheme.colorScheme.onSurface)
     }
 
     Box(
@@ -711,11 +735,11 @@ private fun OverlayEntryFieldRow(
                 shape = ShapeTokens.CardRadius
             )
             .padding(horizontal = Spacing.s, vertical = 6.dp),
-        contentAlignment = Alignment.CenterStart
+        contentAlignment = if (isMultiline) Alignment.TopStart else Alignment.CenterStart
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = if (isMultiline) Alignment.Top else Alignment.CenterVertically
         ) {
             Column(
                 modifier = Modifier.weight(1f),
@@ -730,13 +754,28 @@ private fun OverlayEntryFieldRow(
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = if (isSensitive && !isRevealed) maskText else field.value,
-                    style = if (isSensitive && !isRevealed) MonospaceSecretStyle.copy(fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
-                    else MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+
+                if (isMultiline) {
+                    val scrollState = rememberScrollState()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 95.dp) // Expands dynamically up to 5 lines, scrollable if more
+                            .verticalScroll(scrollState)
+                    ) {
+                        Text(
+                            text = displayText,
+                            style = textStyle
+                        )
+                    }
+                } else {
+                    Text(
+                        text = displayText,
+                        style = textStyle,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(4.dp))
@@ -744,6 +783,7 @@ private fun OverlayEntryFieldRow(
             if (isSensitive) {
                 Box(
                     modifier = Modifier
+                        .padding(top = if (isMultiline) 2.dp else 0.dp)
                         .size(28.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surfaceContainerHigh)
@@ -766,7 +806,8 @@ private fun OverlayEntryFieldRow(
             CopyButton(
                 onClick = onCopy,
                 contentDescription = "$entryTitle $readableLabel",
-                compact = true
+                compact = true,
+                modifier = if (isMultiline) Modifier.padding(top = 2.dp) else Modifier
             )
         }
     }
