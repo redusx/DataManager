@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.datamanager"
+    namespace = "com.redusx.floatvault"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1

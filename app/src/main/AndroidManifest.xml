@@ -9,7 +9,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
-        android:name=".DataManagerApplication"
+        android:name=".FloatVaultApplication"
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -17,12 +17,12 @@
         android:label="@string/app_name"
         android:roundIcon="@drawable/app_icon"
         android:supportsRtl="true"
-        android:theme="@style/Theme.DataManager">
+        android:theme="@style/Theme.FloatVault">
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.DataManager"
+            android:theme="@style/Theme.FloatVault"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -44,9 +44,9 @@
             android:name=".receiver.DebugDataSeederReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.example.datamanager.SEED_DATABASE" />
-                <action android:name="com.example.datamanager.SEED_DATA" />
-                <action android:name="com.example.datamanager.CLEAR_DATABASE" />
+                <action android:name="com.redusx.floatvault.SEED_DATABASE" />
+                <action android:name="com.redusx.floatvault.SEED_DATA" />
+                <action android:name="com.redusx.floatvault.CLEAR_DATABASE" />
             </intent-filter>
         </receiver>
     </application>
