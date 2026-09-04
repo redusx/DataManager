@@ -167,7 +167,7 @@ fun OverlayPanel(
                     )
                     Spacer(modifier = Modifier.width(Spacing.xs))
                     Text(
-                        text = "MyVault",
+                        text = stringResource(R.string.app_name),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.SemiBold

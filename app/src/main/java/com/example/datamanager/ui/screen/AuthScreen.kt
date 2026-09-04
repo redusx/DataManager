@@ -161,7 +161,7 @@ fun AuthScreen(
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.app_icon),
-                        contentDescription = "MyVault Logo",
+                        contentDescription = "${stringResource(R.string.app_name)} Logo",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(52.dp)
@@ -176,7 +176,7 @@ fun AuthScreen(
                     Spacer(modifier = Modifier.height(Spacing.xs))
 
                     Text(
-                        text = "MyVault",
+                        text = stringResource(R.string.app_name),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -309,7 +309,7 @@ fun AuthScreen(
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.app_icon),
-                        contentDescription = "MyVault Logo",
+                        contentDescription = "${stringResource(R.string.app_name)} Logo",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(76.dp)
@@ -324,7 +324,7 @@ fun AuthScreen(
                     Spacer(modifier = Modifier.height(Spacing.m))
 
                     Text(
-                        text = "MyVault",
+                        text = stringResource(R.string.app_name),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface

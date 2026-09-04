@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MyVault</string>
+    <string name="app_name">Float Vault</string>
 
     <!-- Auth -->
     <string name="setup_pin">PIN kodunuzu oluşturun</string>
@@ -196,7 +196,7 @@
     <!-- Overlay -->
     <string name="overlay_channel_name">Hızlı Erişim</string>
     <string name="overlay_channel_desc">Verilerinize hızlı erişim için yüzen buton.</string>
-    <string name="overlay_notification_title">MyVault Aktif</string>
+    <string name="overlay_notification_title">Float Vault Aktif</string>
     <string name="overlay_notification_text">Açmak için dokunun. Butonu sürükleyerek taşıyın.</string>
     <string name="overlay_quick_access">Yüzen Buton (Sürekli Açık)</string>
     <string name="overlay_quick_access_desc">Uygulama arka plandan tamamen kapatılsa bile yüzen butonu ekranda açık tut</string>

@@ -65,7 +65,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun DataManagerTheme(
+fun FloatVaultTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
@@ -74,7 +74,15 @@ fun DataManagerTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
-        shapes = MyVaultShapes,
+        shapes = FloatVaultShapes,
         content = content
     )
+}
+
+@Composable
+fun DataManagerTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit
+) {
+    FloatVaultTheme(darkTheme = darkTheme, content = content)
 }

@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "DataManager"
+rootProject.name = "FloatVault"
 include(":app")

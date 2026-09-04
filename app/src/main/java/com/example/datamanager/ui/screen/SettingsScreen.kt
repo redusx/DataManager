@@ -260,7 +260,7 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(Spacing.s))
                         Column {
                             Text(
-                                text = "MyVault v1.0",
+                                text = "${stringResource(R.string.app_name)} v1.0",
                                 style = MaterialTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.onSurface
                             )

@@ -4,7 +4,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * MyVault canonical 4dp spacing scale and accessibility touch target constants.
+ * Float Vault canonical 4dp spacing scale and accessibility touch target constants.
  */
 object Spacing {
     /** 4dp - Micro gaps, icon-to-badge text */

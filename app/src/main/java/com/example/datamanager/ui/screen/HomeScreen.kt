@@ -264,7 +264,7 @@ fun HomeScreen(
                 },
                 title = {
                     AnimatedContent(
-                        targetState = if (uiState.isViewingEntries) currentCategoryTitle else "MyVault",
+                        targetState = if (uiState.isViewingEntries) currentCategoryTitle else stringResource(R.string.app_name),
                         transitionSpec = {
                             (fadeIn(tween(240)) + slideInVertically(tween(240)) { it / 3 })
                                 .togetherWith(fadeOut(tween(180)) + slideOutVertically(tween(180)) { -it / 3 })

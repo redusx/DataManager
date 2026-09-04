@@ -1,6 +1,6 @@
-# DataManager 🛡️
+# Float Vault 🛡️
 
-**DataManager**, kişisel ve hassas bilgilerinizi tamamen cihaz üzerinde donanım destekli şifreleme (**Android Keystore + SQLCipher**) ile saklayan, **PIN** ve **Biyometrik (Parmak İzi)** kimlik doğrulama ile koruyan ve uygulama üstü **Floating Action Button (Overlay)** ile formlara tek dokunuşla kopyalama imkanı sunan modern bir Android uygulamasıdır.
+**Float Vault**, kişisel ve hassas bilgilerinizi tamamen cihaz üzerinde donanım destekli şifreleme (**Android Keystore + SQLCipher**) ile saklayan, **PIN** ve **Biyometrik (Parmak İzi)** kimlik doğrulama ile koruyan ve uygulama üstü **Floating Action Button (Overlay)** ile formlara tek dokunuşla kopyalama imkanı sunan modern bir Android uygulamasıdır.
 
 ---
 
@@ -43,7 +43,7 @@
 
 1. Projeyi klonlayın:
    ```bash
-   git clone https://github.com/redusx/DataManager.git
+   git clone https://github.com/redusx/FloatVault.git
    ```
 2. Android Studio (Ladybug / Meerkat veya üzeri) ile projeyi açın.
 3. Gradle senkronizasyonunu tamamlayın ve hedef cihazı seçerek çalıştırın.

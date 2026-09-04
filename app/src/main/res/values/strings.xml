@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MyVault</string>
+    <string name="app_name">Float Vault</string>
 
     <!-- Auth -->
     <string name="setup_pin">Create your PIN code</string>
@@ -196,7 +196,7 @@
     <!-- Overlay -->
     <string name="overlay_channel_name">Quick Access</string>
     <string name="overlay_channel_desc">Floating button for quick access to your data.</string>
-    <string name="overlay_notification_title">MyVault Active</string>
+    <string name="overlay_notification_title">Float Vault Active</string>
     <string name="overlay_notification_text">Tap to open. Drag the button to move.</string>
     <string name="overlay_quick_access">Floating Button (Always Active)</string>
     <string name="overlay_quick_access_desc">Keep the floating button active on screen even when the app is closed</string>
