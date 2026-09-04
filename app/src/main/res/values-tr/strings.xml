@@ -250,4 +250,16 @@
     <string name="field_country">Ülke</string>
     <string name="field_note_content">Not İçeriği</string>
     <string name="field_notes">Notlar</string>
+
+    <!-- Privacy Policy -->
+    <string name="privacy_policy">Gizlilik Politikası</string>
+    <string name="privacy_policy_subtitle">%100 çevrimdışı, sıfır takip, donanım şifreleme</string>
+    <string name="privacy_guarantee_title">Gizlilik ve Güvenlik Güvencemiz</string>
+    <string name="privacy_point_1">%100 Çevrimdışı: Uygulama internet erişim iznine sahip değildir. Verileriniz hiçbir koşulda cihazınızın dışına çıkmaz.</string>
+    <string name="privacy_point_2">Sıfır Analitik &amp; Reklam: Hiçbir takipçi, telemetri veya analiz SDK\'sı bulunmaz. Verileriniz toplanmaz ve asla satılmaz.</string>
+    <string name="privacy_point_3">Donanım Düzeyinde Şifreleme: Tüm şifre ve notlarınız SQLCipher AES-256 ve Android Keystore anahtarlarıyla şifreli saklanır.</string>
+    <string name="privacy_point_4">Tam Kullanıcı Kontrolü: Verileriniz üzerinde mutlak kontrole sahipsiniz. Dilediğiniz kaydı silebilir veya Ayarlar\'dan tüm kasayı yok edebilirsiniz.</string>
+    <string name="view_full_policy_web">Web Üzerinden Tam Metni Gör</string>
+    <string name="privacy_policy_url">https://redusx.github.io/FloatVault/privacy-policy.html</string>
+    <string name="dialog_close">Kapat</string>
 </resources>

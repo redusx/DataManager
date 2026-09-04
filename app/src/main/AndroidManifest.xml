@@ -42,7 +42,7 @@
 
         <receiver
             android:name=".receiver.DebugDataSeederReceiver"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="com.example.datamanager.SEED_DATABASE" />
                 <action android:name="com.example.datamanager.SEED_DATA" />

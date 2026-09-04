@@ -250,4 +250,16 @@
     <string name="field_country">Country</string>
     <string name="field_note_content">Note Content</string>
     <string name="field_notes">Notes</string>
+
+    <!-- Privacy Policy -->
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="privacy_policy_subtitle">100% offline, zero tracking, hardware encryption</string>
+    <string name="privacy_guarantee_title">Privacy &amp; Security Guarantees</string>
+    <string name="privacy_point_1">100% Offline: The app does not have internet access permission. Your data never leaves your device under any circumstances.</string>
+    <string name="privacy_point_2">Zero Analytics &amp; Ads: No third-party trackers, telemetry, or analytics SDKs are included. We do not collect or sell your data.</string>
+    <string name="privacy_point_3">Hardware Encryption: All credentials and notes are encrypted at rest with SQLCipher AES-256 and Android Keystore master keys.</string>
+    <string name="privacy_point_4">User Control: You have complete sovereignty over your data. Delete individual records or wipe everything permanently in Settings.</string>
+    <string name="view_full_policy_web">View Full Policy Online</string>
+    <string name="privacy_policy_url">https://redusx.github.io/FloatVault/privacy-policy.html</string>
+    <string name="dialog_close">Close</string>
 </resources>

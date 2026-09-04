@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - Float Vault</title>
+    <meta name="description" content="Official Privacy Policy for Float Vault - 100% Offline Personal Vault & Password Manager">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0b0f19;
+            --bg-card: #131b2e;
+            --bg-card-border: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.15);
+            --accent-green: #34d399;
+            --radius-md: 12px;
+            --radius-lg: 18px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            padding: 24px 16px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 860px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0 24px;
+            border-bottom: 1px solid var(--bg-card-border);
+            margin-bottom: 32px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--accent-glow);
+            color: var(--accent);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffffff 40%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .meta {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Lang switcher */
+        .lang-switch {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 24px 0 32px;
+        }
+
+        .lang-btn {
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            border: 1px solid var(--bg-card-border);
+            padding: 8px 18px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .lang-btn.active {
+            background: var(--accent);
+            color: #0b0f19;
+            border-color: var(--accent);
+        }
+
+        /* Content Sections */
+        .policy-section {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-card-border);
+            border-radius: var(--radius-lg);
+            padding: 28px 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        h2 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 16px 0 8px;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+            font-size: 0.98rem;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 14px;
+        }
+
+        li {
+            color: var(--text-secondary);
+            font-size: 0.96rem;
+            padding-left: 24px;
+            position: relative;
+            margin-bottom: 8px;
+        }
+
+        li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--accent-green);
+            font-weight: 700;
+        }
+
+        .highlight-box {
+            background: rgba(56, 189, 248, 0.06);
+            border-left: 4px solid var(--accent);
+            padding: 16px 20px;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            margin: 16px 0;
+        }
+
+        .highlight-box p {
+            color: var(--text-primary);
+            font-weight: 500;
+            margin: 0;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--bg-card-border);
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8rem; }
+            .policy-section { padding: 20px 18px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <header>
+        <div class="badge">🛡️ 100% Offline & Hardware Encrypted</div>
+        <h1>Float Vault</h1>
+        <p class="meta">Privacy Policy / Gizlilik Politikası</p>
+    </header>
+
+    <div class="lang-switch">
+        <button class="lang-btn active" id="btn-tr" onclick="setLang('tr')">🇹🇷 Türkçe</button>
+        <button class="lang-btn" id="btn-en" onclick="setLang('en')">🇬🇧 English</button>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- TURKISH CONTENT -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <main id="lang-tr">
+        <div class="policy-section">
+            <h2>1. Giriş ve Temel İlke</h2>
+            <div class="highlight-box">
+                <p>Temel ilkemiz: Verileriniz yalnızca size aittir, sadece kendi fiziksel cihazınızda saklanır ve hiçbir koşulda cihazınızın dışına çıkmaz.</p>
+            </div>
+            <p><strong>Float Vault</strong>, kişisel verilerinizi, şifrelerinizi, banka ve kimlik bilgilerinizi güvenle saklamanız için sıfırdan <strong>%100 çevrimdışı (offline-first)</strong> bir mimariyle geliştirilmiş modern bir Android uygulamasıdır.</p>
+        </div>
+
+        <div class="policy-section">
+            <h2>2. Sıfır Ağ Erişimi ve Sıfır Veri Toplama</h2>
+            <p>Float Vault, gizliliğinizi varsayımlarla değil teknik mimarisiyle garanti eder:</p>
+            <ul>
+                <li><strong>İnternet İzni Yok:</strong> Uygulamamız <code>android.permission.INTERNET</code> iznine sahip değildir ve talep etmez. Android işletim sistemi düzeyinde dış dünyaya veri gönderilmesi imkansızdır.</li>
+                <li><strong>Sunucu & Üyelik Yok:</strong> Uzak bir sunucumuz, kullanıcı kayıt sistemimiz veya bulut senkronizasyonumuz yoktur.</li>
+                <li><strong>Analitik & Takip Yok:</strong> Firebase, Google Analytics, Mixpanel, reklam ağları veya telemetri SDK'ları yer almaz.</li>
+                <li><strong>Tanımlayıcı Yok:</strong> Reklam Kimliği (AD_ID), Android ID, IMEI veya cihaz kimlikleri toplanmaz.</li>
+            </ul>
+        </div>
+
+        <div class="policy-section">
+            <h2>3. Yerel Olarak Saklanan Veriler</h2>
+            <p>Kullanıcı kendi isteğiyle aşağıdaki veri türlerini kaydedebilir:</p>
+            <ul>
+                <li>Hesap ve giriş bilgileri (kullanıcı adı, şifre, web sitesi)</li>
+                <li>Banka & kredi kartı bilgileri (kart numarası, SKT, CVV, IBAN)</li>
+                <li>Kimlik belgeleri (T.C. Kimlik no, seri no, pasaport)</li>
+                <li>İletişim ve adres bilgileri (adres, telefon, e-posta)</li>
+                <li>Özel notlar (Wi-Fi şifreleri, kurtarma kelimeleri, API anahtarları)</li>
+            </ul>
+            <p>Bu verilerin tümü yalnızca cihazınızın kendi güvenli yerel depolama alanında şifreli olarak tutulur.</p>
+        </div>
+
+        <div class="policy-section">
+            <h2>4. Güvenlik ve Şifreleme Mimarisi</h2>
+            <ul>
+                <li><strong>SQLCipher AES-256:</strong> Veritabanı seviyesinde disk üzerinde tam AES-256 şifreleme.</li>
+                <li><strong>Android Keystore:</strong> Donanım destekli (TEE / Secure Element) güvenli anahtar yönetimi.</li>
+                <li><strong>PBKDF2 Hashing:</strong> PIN kodu 100.000 iterasyon ve rastgele tuz (salt) ile özetlenir.</li>
+                <li><strong>Ekran Güvenliği (FLAG_SECURE):</strong> Görev yöneticisi ve ekran görüntüsü alımlarına karşı hassas ekran koruması.</li>
+            </ul>
+        </div>
+
+        <div class="policy-section">
+            <h2>5. İzinler ve Amaçları</h2>
+            <ul>
+                <li><strong>Diğer Uygulamaların Üzerinde Görüntüleme (SYSTEM_ALERT_WINDOW):</strong> Yalnızca kullanıcı açıkça başlattığında diğer formlarda kolay kopyalama sağlayan yüzen butonu gösterir. Diğer uygulamaların ekranını izlemez veya okumaz.</li>
+                <li><strong>Biyometrik Kimlik Doğrulama (USE_BIOMETRIC):</strong> Parmak iziyle hızlı kilit açma. Biyometrik eşleşme Android işletim sisteminde yapılır, uygulamaya parmak izi verisi iletilmez.</li>
+                <li><strong>Ön Plan Servisi (FOREGROUND_SERVICE):</strong> Yüzen buton servisinin sistemce kapatılmasını önler.</li>
+                <li><strong>Bildirim İzni (POST_NOTIFICATIONS):</strong> Yüzen servis aktifken "Float Vault Aktif" durum bildirimini göstermek içindir. Hassas veri içermez.</li>
+            </ul>
+        </div>
+
+        <div class="policy-section">
+            <h2>6. Pano ve Otomatik Temizleme</h2>
+            <p>Bir parola kopyalandığında Android 13+ üzerinde "Hassas Veri" bayrağı (<code>EXTRA_IS_SENSITIVE</code>) atanarak sistem önizlemesi gizlenir. Ayrıca uygulama 60 saniye sonra panoda halen aynı hassas veri varsa panoyu otomatik olarak temizler.</p>
+        </div>
+
+        <div class="policy-section">
+            <h2>7. Veri Silme ve Kullanıcı Kontrolü</h2>
+            <ul>
+                <li><strong>Kayıt Silme:</strong> İstediğiniz kaydı anında silebilirsiniz.</li>
+                <li><strong>Kalıcı Kasa Sıfırlama:</strong> Ayarlar menüsündeki "Tüm Verileri Sil" butonuyla veritabanını, şifreleme anahtarlarını ve PIN kodunu anında ve geri döndürülemez şekilde yok edebilirsiniz.</li>
+                <li><strong>Uygulamayı Kaldırma:</strong> Float Vault'u cihazınızdan sildiğinizde işletim sistemi tüm şifreli kasa dosyalarını kalıcı olarak siler.</li>
+            </ul>
+        </div>
+
+        <div class="policy-section">
+            <h2>8. İletişim Bilgileri</h2>
+            <p>Gizlilik politikamız ve güvenlik uygulamalarımız hakkındaki sorularınız için:</p>
+            <ul>
+                <li><strong>Geliştirici:</strong> [DEVELOPER NAME]</li>
+                <li><strong>E-posta:</strong> [CONTACT EMAIL]</li>
+                <li><strong>Web Sitesi:</strong> [WEBSITE]</li>
+            </ul>
+        </div>
+    </main>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- ENGLISH CONTENT -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <main id="lang-en" style="display: none;">
+        <div class="policy-section">
+            <h2>1. Introduction & Core Principle</h2>
+            <div class="highlight-box">
+                <p>Our core principle: Your data belongs exclusively to you, resides only on your physical device, and never leaves your device under any circumstances.</p>
+            </div>
+            <p><strong>Float Vault</strong> is a modern Android application engineered from the ground up as a <strong>100% offline-first</strong> personal vault and password manager to protect your sensitive credentials, financial records, and personal documents.</p>
+        </div>
+
+        <div class="policy-section">
+            <h2>2. Zero Network & Zero Data Collection</h2>
+            <p>Float Vault guarantees your privacy through technical architectural barriers, not merely assumptions:</p>
+            <ul>
+                <li><strong>No Internet Permission:</strong> The app does not request or possess <code>android.permission.INTERNET</code>. Transmission of data off-device is blocked at the Android operating system level.</li>
+                <li><strong>No Cloud Servers / No Accounts:</strong> We operate no remote servers, user registration systems, or cloud sync databases.</li>
+                <li><strong>No Analytics / Tracking:</strong> Zero analytics SDKs (such as Firebase, Mixpanel, or Google Analytics) and zero advertising trackers are present.</li>
+                <li><strong>No Identifiers:</strong> Advertising ID (AD_ID), Android ID, IMEI, or device fingerprints are never collected.</li>
+            </ul>
+        </div>
+
+        <div class="policy-section">
+            <h2>3. Locally Stored Data</h2>
+            <p>Users may voluntarily choose to store sensitive personal information:</p>
+            <ul>
+                <li>Account credentials (usernames, passwords, website URLs)</li>
+                <li>Payment card & bank account details (card numbers, expiry, CVV, IBAN)</li>
+                <li>Identity documents (national ID, serial number, passport, license)</li>
+                <li>Contact & address details (addresses, phone numbers, emails)</li>
+                <li>Secure notes (Wi-Fi passwords, recovery phrases, API keys)</li>
+            </ul>
+            <p>All stored data resides strictly in encrypted local storage on your physical device.</p>
+        </div>
+
+        <div class="policy-section">
+            <h2>4. Security & Encryption Architecture</h2>
+            <ul>
+                <li><strong>SQLCipher AES-256:</strong> Full database-level 256-bit AES encryption at rest.</li>
+                <li><strong>Android Keystore:</strong> Hardware-backed key management utilizing TEE / Secure Element.</li>
+                <li><strong>PBKDF2 Hashing:</strong> Master PIN is salted and hashed with 100,000 iterations of PBKDF2WithHmacSHA256.</li>
+                <li><strong>Screen Protection (FLAG_SECURE):</strong> Prevents unauthorized screenshots and recent app previews.</li>
+            </ul>
+        </div>
+
+        <div class="policy-section">
+            <h2>5. Device Permissions & Purpose</h2>
+            <ul>
+                <li><strong>Display Over Other Apps (SYSTEM_ALERT_WINDOW):</strong> Used solely to present the user-initiated floating button for fast copy-pasting into forms. It does not inspect, read, or monitor other applications' screens.</li>
+                <li><strong>Biometric Authentication (USE_BIOMETRIC):</strong> Unlocks your vault using fingerprint or device lock. Biometric matching is handled entirely by Android OS hardware enclaves.</li>
+                <li><strong>Foreground Service (FOREGROUND_SERVICE):</strong> Keeps the floating button active in the background.</li>
+                <li><strong>Notifications (POST_NOTIFICATIONS):</strong> Required by Android 13+ to display the status notification while the floating button is active. Contains zero sensitive data.</li>
+            </ul>
+        </div>
+
+        <div class="policy-section">
+            <h2>6. Clipboard Security & Auto-Clear</h2>
+            <p>When copying sensitive credentials, Float Vault flags the clipboard item as sensitive (<code>EXTRA_IS_SENSITIVE</code>) on Android 13+ to suppress system previews. An automatic background timer clears the clipboard after 60 seconds if it still contains the copied sensitive text.</p>
+        </div>
+
+        <div class="policy-section">
+            <h2>7. Data Deletion & User Sovereignty</h2>
+            <ul>
+                <li><strong>Individual Deletion:</strong> You can edit or delete any stored entry at any moment.</li>
+                <li><strong>Permanent Wipe:</strong> The "Delete All Data" feature in Settings permanently destroys all database records, encryption keys, and PIN hashes.</li>
+                <li><strong>Uninstallation:</strong> Uninstalling Float Vault instantly and irreversibly removes all local encrypted vault files from your device.</li>
+            </ul>
+        </div>
+
+        <div class="policy-section">
+            <h2>8. Contact Information</h2>
+            <p>For questions or inquiries regarding this Privacy Policy and Float Vault security practices:</p>
+            <ul>
+                <li><strong>Developer:</strong> [DEVELOPER NAME]</li>
+                <li><strong>Email:</strong> [CONTACT EMAIL]</li>
+                <li><strong>Website:</strong> [WEBSITE]</li>
+            </ul>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Float Vault. All rights reserved. 100% Offline & Private.</p>
+    </footer>
+
+</div>
+
+<script>
+    function setLang(lang) {
+        document.getElementById('lang-tr').style.display = (lang === 'tr') ? 'block' : 'none';
+        document.getElementById('lang-en').style.display = (lang === 'en') ? 'block' : 'none';
+        document.getElementById('btn-tr').classList.toggle('active', lang === 'tr');
+        document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+    }
+</script>
+
+</body>
+</html>

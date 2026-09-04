@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -47,12 +48,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -82,6 +87,7 @@ fun SettingsScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    var showPrivacyPolicyDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.loadSettings()
@@ -236,7 +242,8 @@ fun SettingsScreen(
             }
 
             item {
-                Column(
+                // About Card
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(ShapeTokens.CardRadius)
@@ -272,6 +279,57 @@ fun SettingsScreen(
                             )
                         }
                     }
+                }
+            }
+
+            item {
+                // Privacy Policy Card
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(ShapeTokens.CardRadius)
+                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            shape = ShapeTokens.CardRadius
+                        )
+                        .clickable { showPrivacyPolicyDialog = true }
+                        .padding(horizontal = Spacing.m, vertical = Spacing.m),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Lock,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Spacer(modifier = Modifier.width(Spacing.s))
+                        Column {
+                            Text(
+                                text = stringResource(R.string.privacy_policy),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = stringResource(R.string.privacy_policy_subtitle),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    Icon(
+                        imageVector = Icons.Rounded.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
             }
         }
@@ -433,6 +491,102 @@ fun SettingsScreen(
                     )
                 }
             }
+        )
+    }
+
+    // Privacy Policy Dialog
+    if (showPrivacyPolicyDialog) {
+        val policyUrl = stringResource(R.string.privacy_policy_url)
+        AlertDialog(
+            onDismissRequest = { showPrivacyPolicyDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Rounded.Shield,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = stringResource(R.string.privacy_policy),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.s)
+                ) {
+                    Text(
+                        text = stringResource(R.string.privacy_guarantee_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                    PrivacyPointItem(text = stringResource(R.string.privacy_point_1))
+                    PrivacyPointItem(text = stringResource(R.string.privacy_point_2))
+                    PrivacyPointItem(text = stringResource(R.string.privacy_point_3))
+                    PrivacyPointItem(text = stringResource(R.string.privacy_point_4))
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        try {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(policyUrl))
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            // Ignore if no web browser
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    shape = ShapeTokens.ButtonRadius
+                ) {
+                    Text(
+                        text = stringResource(R.string.view_full_policy_web),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPrivacyPolicyDialog = false }) {
+                    Text(
+                        text = stringResource(R.string.dialog_close),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            },
+            shape = ShapeTokens.DialogRadius,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        )
+    }
+}
+
+@Composable
+private fun PrivacyPointItem(text: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.Shield,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .size(16.dp)
+                .padding(top = 2.dp)
+        )
+        Spacer(modifier = Modifier.width(Spacing.xs))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
