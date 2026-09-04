@@ -202,6 +202,10 @@
     <string name="overlay_quick_access_desc">Keep the floating button active on screen even when the app is closed</string>
     <string name="overlay_permission_required">Overlay Permission Required</string>
     <string name="overlay_permission_desc">Please grant permission to display over other apps in system settings.</string>
+    <string name="overlay_permission_dialog_title">Overlay Permission Required</string>
+    <string name="overlay_permission_dialog_desc">To display the floating quick access button over other apps and access your credentials from any screen, \'Display over other apps\' permission is required.</string>
+    <string name="overlay_permission_dialog_hint">Enable the permission for Float Vault in the system settings screen that opens.</string>
+    <string name="open_settings">Open Settings</string>
     <string name="start_floating_button">Floating Quick Access</string>
     <string name="start_floating_button_desc">Minimizes app and opens floating button (stays active until closed)</string>
     <string name="open_app">Open App</string>

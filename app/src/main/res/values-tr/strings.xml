@@ -202,6 +202,10 @@
     <string name="overlay_quick_access_desc">Uygulama arka plandan tamamen kapatılsa bile yüzen butonu ekranda açık tut</string>
     <string name="overlay_permission_required">Görüntüleme İzni Gerekli</string>
     <string name="overlay_permission_desc">Yüzen butonu kullanabilmek için lütfen diğer uygulamaların üzerinde görüntüleme iznini açın.</string>
+    <string name="overlay_permission_dialog_title">Yüzen Pencere İzni Gerekli</string>
+    <string name="overlay_permission_dialog_desc">Yüzen hızlı erişim butonunun diğer uygulamaların üzerinde görüntülenebilmesi ve şifrelerinize her ekrandan tek dokunuşla ulaşabilmeniz için \'Diğer uygulamaların üzerinde görüntüleme\' izni gereklidir.</string>
+    <string name="overlay_permission_dialog_hint">Açılan ayarlar ekranında Float Vault uygulamasını seçerek izni aktif hale getirin.</string>
+    <string name="open_settings">Ayarları Aç</string>
     <string name="start_floating_button">Yüzen Hızlı Erişimi Başlat</string>
     <string name="start_floating_button_desc">Uygulamayı arka plana atıp yüzen butonu açar (Uygulama kapatılana kadar aktif kalır)</string>
     <string name="open_app">Uygulamayı Aç</string>
