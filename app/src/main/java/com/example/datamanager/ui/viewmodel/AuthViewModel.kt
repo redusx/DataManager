@@ -31,7 +31,8 @@ data class AuthUiState(
     val isResettingPinWithBiometric: Boolean = false,
     val showResetVaultDialog: Boolean = false,
     val resetSuccessMessage: String? = null,
-    val isUnlocking: Boolean = false
+    val isUnlocking: Boolean = false,
+    val showBiometricPromptDialog: Boolean = false
 )
 
 enum class AuthMode {
@@ -90,13 +91,23 @@ class AuthViewModel @Inject constructor(
                     if (newConfirm == currentState.pin) {
                         val success = authRepository.setupPin(newConfirm)
                         if (success) {
-                            _uiState.value = _uiState.value.copy(isUnlocking = true)
-                            viewModelScope.launch {
-                                delay(220)
+                            val canPromptBiometric = !currentState.isResettingPinWithBiometric &&
+                                com.example.datamanager.util.BiometricHelper.canAuthenticate(context)
+
+                            if (canPromptBiometric) {
                                 _uiState.value = _uiState.value.copy(
-                                    mode = AuthMode.AUTHENTICATED,
+                                    showBiometricPromptDialog = true,
                                     isResettingPinWithBiometric = false
                                 )
+                            } else {
+                                _uiState.value = _uiState.value.copy(isUnlocking = true)
+                                viewModelScope.launch {
+                                    delay(220)
+                                    _uiState.value = _uiState.value.copy(
+                                        mode = AuthMode.AUTHENTICATED,
+                                        isResettingPinWithBiometric = false
+                                    )
+                                }
                             }
                         } else {
                             _uiState.value = _uiState.value.copy(
@@ -228,8 +239,35 @@ class AuthViewModel @Inject constructor(
                 isLockedOut = false,
                 showResetVaultDialog = false,
                 isResettingPinWithBiometric = false,
+                showBiometricPromptDialog = false,
                 resetSuccessMessage = "Kasa sıfırlandı. Lütfen yeni bir PIN oluşturun."
             )
+        }
+    }
+
+    fun onEnableBiometricConfirmed() {
+        authRepository.setBiometricEnabled(true)
+        _uiState.value = _uiState.value.copy(
+            showBiometricPromptDialog = false,
+            isBiometricAvailable = true,
+            isUnlocking = true
+        )
+        viewModelScope.launch {
+            delay(220)
+            _uiState.value = _uiState.value.copy(mode = AuthMode.AUTHENTICATED)
+        }
+    }
+
+    fun onDismissBiometricPrompt() {
+        authRepository.setBiometricEnabled(false)
+        _uiState.value = _uiState.value.copy(
+            showBiometricPromptDialog = false,
+            isBiometricAvailable = false,
+            isUnlocking = true
+        )
+        viewModelScope.launch {
+            delay(220)
+            _uiState.value = _uiState.value.copy(mode = AuthMode.AUTHENTICATED)
         }
     }
 

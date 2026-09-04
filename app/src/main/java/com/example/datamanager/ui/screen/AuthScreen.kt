@@ -34,6 +34,7 @@ import androidx.compose.material.icons.automirrored.rounded.HelpOutline
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.DeleteForever
 import androidx.compose.material.icons.rounded.Fingerprint
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -723,6 +724,103 @@ fun AuthScreen(
                         text = stringResource(R.string.cancel),
                         style = MaterialTheme.typography.labelLarge
                     )
+                }
+            }
+        )
+    }
+
+    // First-Time Biometric / Fingerprint Activation Dialog
+    if (uiState.showBiometricPromptDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.onDismissBiometricPrompt() },
+            shape = ShapeTokens.DialogRadius,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            icon = {
+                Box(
+                    modifier = Modifier
+                        .size(52.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Fingerprint,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            },
+            title = {
+                Text(
+                    text = stringResource(R.string.enable_biometric_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(Spacing.s)
+                ) {
+                    Text(
+                        text = stringResource(R.string.enable_biometric_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(ShapeTokens.CardRadius)
+                            .background(MaterialTheme.colorScheme.surfaceContainer)
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+                                shape = ShapeTokens.CardRadius
+                            )
+                            .padding(Spacing.s)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Info,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(Spacing.xs))
+                            Text(
+                                text = stringResource(R.string.enable_biometric_settings_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.onEnableBiometricConfirmed() },
+                    shape = ShapeTokens.ButtonRadius
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Fingerprint,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(Spacing.xs))
+                    Text(stringResource(R.string.enable_biometric_confirm))
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = { viewModel.onDismissBiometricPrompt() },
+                    shape = ShapeTokens.ButtonRadius
+                ) {
+                    Text(stringResource(R.string.enable_biometric_skip))
                 }
             }
         )

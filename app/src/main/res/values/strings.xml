@@ -222,7 +222,12 @@
     <string name="biometric_cancel">Use PIN</string>
     <string name="biometric_not_available">Fingerprint authentication is not available on this device.</string>
     <string name="biometric_none_enrolled">No fingerprints enrolled. Please add a fingerprint in device settings.</string>
-    <string name="biometric_no_hardware">This device does not have a fingerprint sensor.</string>
+    <string name="biometric_no_hardware">No fingerprint hardware found on this device.</string>
+    <string name="enable_biometric_title">Fingerprint Login</string>
+    <string name="enable_biometric_desc">Access your vault faster and securely using your fingerprint instead of entering your 6-digit PIN every time.</string>
+    <string name="enable_biometric_settings_hint">You can turn this feature on or off anytime in Settings.</string>
+    <string name="enable_biometric_confirm">Enable</string>
+    <string name="enable_biometric_skip">Not Now</string>
 
     <!-- Dynamic Field Formatter Labels -->
     <string name="field_username">Username</string>
